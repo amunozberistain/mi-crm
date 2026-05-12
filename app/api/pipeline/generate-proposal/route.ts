@@ -10,29 +10,32 @@ import { createClient } from '@/lib/supabase/server'
 import { generateProposalForDeal } from '@/lib/pipeline/generate-proposal'
 
 export async function POST(request: NextRequest) {
-  // Verificar sesión activa (el endpoint solo es accesible desde el CRM autenticado)
+  console.log('[proposal/route] POST recibido')
+
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return new NextResponse('Unauthorized', { status: 401 })
+  if (!user) {
+    console.log('[proposal/route] 401 — sin sesión')
+    return new NextResponse('Unauthorized', { status: 401 })
+  }
+  console.log(`[proposal/route] Usuario autenticado: ${user.id}`)
 
-  const { dealId } = await request.json() as { dealId: string }
-  if (!dealId) return new NextResponse('dealId requerido', { status: 400 })
+  const body = await request.json() as { dealId?: string }
+  const { dealId } = body
+  if (!dealId) {
+    console.log('[proposal/route] 400 — dealId ausente en body:', body)
+    return new NextResponse('dealId requerido', { status: 400 })
+  }
+  console.log(`[proposal/route] dealId recibido: ${dealId}`)
 
-  // Responder 202 inmediatamente — el Kanban puede seguir funcionando
-  // mientras el PDF se genera en background
   waitUntil(
     generateProposalForDeal(dealId)
-      .then((url) => {
-        console.log(`[proposal] Deal ${dealId} — PDF generado OK: ${url}`)
-      })
       .catch((err: unknown) => {
-        // El error completo aparece en Vercel → Functions → logs
-        console.error(`[proposal] Deal ${dealId} — ERROR:`, err)
-        if (err instanceof Error) {
-          console.error(`[proposal] Stack: ${err.stack}`)
-        }
+        console.error(`[proposal/route] ERROR en background para deal ${dealId}:`, err)
+        if (err instanceof Error) console.error('[proposal/route] Stack:', err.stack)
       })
   )
 
+  console.log(`[proposal/route] waitUntil lanzado, respondiendo 200`)
   return NextResponse.json({ status: 'generating', dealId })
 }
