@@ -50,6 +50,11 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
     setPanelDeal(prev => prev?.id === dealId ? { ...prev, ...updates } : prev)
   }
 
+  function handleDealDeleted(dealId: string) {
+    setDeals(prev => prev.filter(d => d.id !== dealId))
+    setPanelDeal(null)
+  }
+
   function handleDragStart({ active }: DragStartEvent) {
     setActiveDeal(deals.find((d) => d.id === active.id) ?? null)
   }
@@ -137,6 +142,7 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
           contacts={contacts}
           onClose={() => setPanelDeal(null)}
           onDealUpdated={handleDealUpdated}
+          onDealDeleted={handleDealDeleted}
         />
       )}
     </>

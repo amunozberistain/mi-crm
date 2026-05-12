@@ -2,26 +2,28 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { updateDeal } from '@/app/(dashboard)/pipeline/actions'
+import { updateDeal, deleteDeal, clearDealDocument } from '@/app/(dashboard)/pipeline/actions'
 import { PIPELINE_STAGES, FORMA_PAGO_OPTIONS } from '@/lib/constants'
 import BudgetModal from './budget-modal'
 import ProposalModal from './proposal-modal'
 import type { Contact, Deal } from '@/types'
 
 interface Props {
-  deal:           Deal
-  contacts:       Pick<Contact, 'id' | 'name' | 'company'>[]
-  onClose:        () => void
-  onDealUpdated:  (dealId: string, updates: Partial<Deal>) => void
+  deal:            Deal
+  contacts:        Pick<Contact, 'id' | 'name' | 'company'>[]
+  onClose:         () => void
+  onDealUpdated:   (dealId: string, updates: Partial<Deal>) => void
+  onDealDeleted:   (dealId: string) => void
 }
 
-export default function DealPanel({ deal, contacts, onClose, onDealUpdated }: Props) {
+export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDealDeleted }: Props) {
   const [title,          setTitle]          = useState(deal.title)
   const [stage,          setStage]          = useState(deal.stage)
   const [value,          setValue]          = useState(String(deal.value ?? 0))
   const [contactId,      setContactId]      = useState(deal.contact_id ?? '')
   const [cantidadVideos, setCantidadVideos] = useState(String(deal.cantidad_videos ?? ''))
   const [formaPago,      setFormaPago]      = useState(deal.forma_pago ?? '')
+  const [notes,          setNotes]          = useState(deal.notes ?? '')
 
   const [isSaving,   setIsSaving]   = useState(false)
   const [saveError,  setSaveError]  = useState<string | null>(null)
@@ -32,6 +34,13 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated }: Pr
 
   const [budgetOpen,   setBudgetOpen]   = useState(false)
   const [proposalOpen, setProposalOpen] = useState(false)
+
+  const [confirmDelete,        setConfirmDelete]        = useState(false)
+  const [isDeleting,           setIsDeleting]           = useState(false)
+  const [confirmDeleteBudget,  setConfirmDeleteBudget]  = useState(false)
+  const [confirmDeleteProposal,setConfirmDeleteProposal]= useState(false)
+  const [isDeletingBudget,     setIsDeletingBudget]     = useState(false)
+  const [isDeletingProposal,   setIsDeletingProposal]   = useState(false)
 
   const contact = contacts.find(c => c.id === (contactId || deal.contact_id)) ?? null
 
@@ -44,10 +53,11 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated }: Pr
       const updates = {
         title,
         stage,
-        value:          parseFloat(value) || 0,
-        contact_id:     contactId || null,
+        value:           parseFloat(value) || 0,
+        contact_id:      contactId || null,
         cantidad_videos: cantidadVideos ? parseInt(cantidadVideos) : null,
-        forma_pago:     formaPago || null,
+        forma_pago:      formaPago || null,
+        notes:           notes.trim() || null,
       }
       await updateDeal(deal.id, updates)
       onDealUpdated(deal.id, updates)
@@ -60,9 +70,50 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated }: Pr
     }
   }
 
-  const inputCls = 'w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
+  async function handleDelete() {
+    setIsDeleting(true)
+    try {
+      await deleteDeal(deal.id)
+      onDealDeleted(deal.id)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Error al eliminar')
+      setConfirmDelete(false)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  async function handleDeleteBudget() {
+    setIsDeletingBudget(true)
+    try {
+      await clearDealDocument(deal.id, 'budget')
+      setBudgetUrl(null)
+      onDealUpdated(deal.id, { budget_url: null, budget_generated_at: null })
+      setConfirmDeleteBudget(false)
+    } catch {
+      setConfirmDeleteBudget(false)
+    } finally {
+      setIsDeletingBudget(false)
+    }
+  }
+
+  async function handleDeleteProposal() {
+    setIsDeletingProposal(true)
+    try {
+      await clearDealDocument(deal.id, 'proposal')
+      setProposalUrl(null)
+      onDealUpdated(deal.id, { proposal_url: null, proposal_generated_at: null })
+      setConfirmDeleteProposal(false)
+    } catch {
+      setConfirmDeleteProposal(false)
+    } finally {
+      setIsDeletingProposal(false)
+    }
+  }
+
+  const inputCls  = 'w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
   const selectCls = inputCls
-  const labelCls = 'block text-xs font-medium text-gray-500 mb-1'
+  const labelCls  = 'block text-xs font-medium text-gray-500 mb-1'
 
   return (
     <>
@@ -154,88 +205,183 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated }: Pr
             </select>
           </div>
 
-          {/* Save feedback */}
+          {/* Notas */}
+          <div>
+            <label className={labelCls}>Notas</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder="Observaciones, contexto, seguimiento…"
+              className={cn(inputCls, 'resize-none')}
+            />
+          </div>
+
+          {/* Save error */}
           {saveError && (
             <p className="text-sm text-red-600 bg-red-50 rounded-md px-3 py-2">{saveError}</p>
           )}
 
-          {/* Divider */}
+          {/* Documentos */}
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Documentos</p>
 
             {/* Budget */}
             <div className="mb-3">
               <p className="text-xs font-medium text-gray-600 mb-1.5">Presupuesto PDF</p>
-              <div className="flex items-center gap-2">
-                {budgetUrl ? (
-                  <>
-                    <a
-                      href={budgetUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 font-medium"
+              {budgetUrl ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <a
+                    href={budgetUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 font-medium"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Ver presupuesto
+                  </a>
+                  <span className="text-gray-300">·</span>
+                  <button onClick={() => setBudgetOpen(true)} className="text-xs text-gray-400 hover:text-violet-600">
+                    Regenerar
+                  </button>
+                  <span className="text-gray-300">·</span>
+                  {confirmDeleteBudget ? (
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <span className="text-gray-500">¿Eliminar?</span>
+                      <button
+                        onClick={handleDeleteBudget}
+                        disabled={isDeletingBudget}
+                        className="text-red-600 font-medium hover:text-red-800 disabled:opacity-50"
+                      >
+                        Sí
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteBudget(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        No
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteBudget(true)}
+                      className="text-xs text-gray-300 hover:text-red-500"
+                      title="Eliminar presupuesto"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                      Ver presupuesto
-                    </a>
-                    <span className="text-gray-300">·</span>
-                    <button
-                      onClick={() => setBudgetOpen(true)}
-                      className="text-xs text-gray-400 hover:text-violet-600"
-                    >
-                      Regenerar
                     </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setBudgetOpen(true)}
-                    className="text-xs text-violet-600 hover:text-violet-800 font-medium underline underline-offset-2"
-                  >
-                    Generar presupuesto
-                  </button>
-                )}
-              </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setBudgetOpen(true)}
+                  className="text-xs text-violet-600 hover:text-violet-800 font-medium underline underline-offset-2"
+                >
+                  Generar presupuesto
+                </button>
+              )}
             </div>
 
             {/* Proposal */}
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">Propuesta PDF</p>
-              <div className="flex items-center gap-2">
-                {proposalUrl ? (
-                  <>
-                    <a
-                      href={proposalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+              {proposalUrl ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <a
+                    href={proposalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Ver propuesta
+                  </a>
+                  <span className="text-gray-300">·</span>
+                  <button onClick={() => setProposalOpen(true)} className="text-xs text-gray-400 hover:text-indigo-600">
+                    Regenerar
+                  </button>
+                  <span className="text-gray-300">·</span>
+                  {confirmDeleteProposal ? (
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <span className="text-gray-500">¿Eliminar?</span>
+                      <button
+                        onClick={handleDeleteProposal}
+                        disabled={isDeletingProposal}
+                        className="text-red-600 font-medium hover:text-red-800 disabled:opacity-50"
+                      >
+                        Sí
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteProposal(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        No
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteProposal(true)}
+                      className="text-xs text-gray-300 hover:text-red-500"
+                      title="Eliminar propuesta"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                      Ver propuesta
-                    </a>
-                    <span className="text-gray-300">·</span>
-                    <button
-                      onClick={() => setProposalOpen(true)}
-                      className="text-xs text-gray-400 hover:text-indigo-600"
-                    >
-                      Regenerar
                     </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setProposalOpen(true)}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline underline-offset-2"
-                  >
-                    Crear propuesta
-                  </button>
-                )}
-              </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setProposalOpen(true)}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline underline-offset-2"
+                >
+                  Crear propuesta
+                </button>
+              )}
             </div>
+          </div>
+
+          {/* Danger zone */}
+          <div className="border-t border-gray-100 pt-4">
+            {confirmDelete ? (
+              <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 space-y-2">
+                <p className="text-sm font-medium text-red-800">¿Eliminar este deal?</p>
+                <p className="text-xs text-red-600">Esta acción no se puede deshacer.</p>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors"
+                  >
+                    {isDeleting ? 'Eliminando…' : 'Sí, eliminar deal'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={isDeleting}
+                    className="flex-1 border border-gray-200 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="w-full text-xs text-red-500 hover:text-red-700 font-medium py-2 rounded-lg border border-red-100 hover:border-red-300 hover:bg-red-50 transition-colors"
+              >
+                Eliminar deal
+              </button>
+            )}
           </div>
         </div>
 

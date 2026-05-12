@@ -14,6 +14,7 @@ export async function updateDeal(
     contact_id: string | null
     cantidad_videos: number | null
     forma_pago: string | null
+    notes: string | null
   }
 ) {
   const supabase = createClient()
@@ -21,6 +22,23 @@ export async function updateDeal(
     .from('deals')
     .update({ ...data, last_activity_at: new Date().toISOString() })
     .eq('id', dealId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/pipeline')
+}
+
+export async function deleteDeal(dealId: string) {
+  const supabase = createClient()
+  const { error } = await supabase.from('deals').delete().eq('id', dealId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/pipeline')
+}
+
+export async function clearDealDocument(dealId: string, type: 'budget' | 'proposal') {
+  const supabase = createClient()
+  const field = type === 'budget'
+    ? { budget_url: null, budget_generated_at: null }
+    : { proposal_url: null, proposal_generated_at: null }
+  const { error } = await supabase.from('deals').update(field).eq('id', dealId)
   if (error) throw new Error(error.message)
   revalidatePath('/pipeline')
 }

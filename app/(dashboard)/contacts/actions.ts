@@ -11,6 +11,7 @@ export async function updateContact(
     phone: string | null
     company: string | null
     source: string | null
+    notes: string | null
   }
 ) {
   const supabase = createClient()
@@ -18,6 +19,13 @@ export async function updateContact(
     .from('contacts')
     .update(data)
     .eq('id', contactId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/contacts')
+}
+
+export async function deleteContact(contactId: string) {
+  const supabase = createClient()
+  const { error } = await supabase.from('contacts').delete().eq('id', contactId)
   if (error) throw new Error(error.message)
   revalidatePath('/contacts')
 }

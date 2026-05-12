@@ -100,6 +100,11 @@ export default function ContactsClient({ contacts: initial }: Props) {
     setContacts(prev => prev.map(c => c.id === updated.id ? updated : c))
   }
 
+  function handleContactDeleted(contactId: string) {
+    setContacts(prev => prev.filter(c => c.id !== contactId))
+    setEditContact(null)
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Cabecera */}
@@ -176,6 +181,7 @@ export default function ContactsClient({ contacts: initial }: Props) {
           open={!!editContact}
           onOpenChange={(v) => { if (!v) setEditContact(null) }}
           onUpdated={handleContactUpdated}
+          onContactDeleted={handleContactDeleted}
         />
       )}
 

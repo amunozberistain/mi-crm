@@ -16,6 +16,7 @@ export type Deal = {
   budget_generated_at: string | null
   cantidad_videos: number | null
   forma_pago: string | null
+  notes: string | null
 }
 
 export type Contact = {
@@ -25,6 +26,7 @@ export type Contact = {
   phone: string | null
   company: string | null
   source: string | null
+  notes: string | null
   created_at: string
   // Origen del lead (Meta Ads tracking)
   lead_source: 'manual' | 'meta_lead_ads' | 'meta_landing' | null
