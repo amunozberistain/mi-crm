@@ -1,7 +1,5 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export interface CampaignAlertRow {
   campaign_id:    string
   campaign_name:  string
@@ -21,13 +19,16 @@ function formatPct(n: number) {
 }
 
 export async function sendCampaignAlert(campaigns: CampaignAlertRow[]) {
-  const from = process.env.RESEND_FROM_EMAIL!
-  const to   = process.env.ALERT_EMAIL_TO!
+  const from   = process.env.RESEND_FROM_EMAIL
+  const to     = process.env.ALERT_EMAIL_TO
+  const apiKey = process.env.RESEND_API_KEY
 
-  if (!process.env.RESEND_API_KEY || !from || !to) {
+  if (!apiKey || !from || !to) {
     console.warn('Resend: credenciales no configuradas, alerta omitida')
     return
   }
+
+  const resend = new Resend(apiKey)
 
   const rows = campaigns.map((c) => `
     <tr>
