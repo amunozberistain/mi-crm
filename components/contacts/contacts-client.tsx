@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createContact } from '@/app/(dashboard)/contacts/actions'
+import ContactEditModal from './contact-edit-modal'
 import type { Contact } from '@/types'
 
 interface Props {
@@ -59,11 +60,13 @@ function formatDate(iso: string) {
   })
 }
 
-export default function ContactsClient({ contacts }: Props) {
-  const [search, setSearch]     = useState('')
-  const [open, setOpen]         = useState(false)
-  const [isPending, setIsPending] = useState(false)
-  const [error, setError]       = useState<string | null>(null)
+export default function ContactsClient({ contacts: initial }: Props) {
+  const [contacts,   setContacts]   = useState<Contact[]>(initial)
+  const [search,     setSearch]     = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editContact, setEditContact] = useState<Contact | null>(null)
+  const [isPending,  setIsPending]  = useState(false)
+  const [error,      setError]      = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const filtered = useMemo(() => {
@@ -85,12 +88,16 @@ export default function ContactsClient({ contacts }: Props) {
       const formData = new FormData(e.currentTarget)
       await createContact(formData)
       formRef.current?.reset()
-      setOpen(false)
+      setCreateOpen(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar')
     } finally {
       setIsPending(false)
     }
+  }
+
+  function handleContactUpdated(updated: Contact) {
+    setContacts(prev => prev.map(c => c.id === updated.id ? updated : c))
   }
 
   return (
@@ -103,18 +110,16 @@ export default function ContactsClient({ contacts }: Props) {
             {contacts.length} contacto{contacts.length !== 1 ? 's' : ''}
           </p>
         </div>
-
-        {/* Botón abre el diálogo directamente mediante estado */}
         <Button
           className="bg-indigo-600 hover:bg-indigo-700"
-          onClick={() => { setError(null); setOpen(true) }}
+          onClick={() => { setError(null); setCreateOpen(true) }}
         >
           + Añadir contacto
         </Button>
       </div>
 
       {/* Modal de nuevo contacto */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Nuevo contacto</DialogTitle>
@@ -149,7 +154,7 @@ export default function ContactsClient({ contacts }: Props) {
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
                 Cancelar
               </Button>
               <Button
@@ -163,6 +168,16 @@ export default function ContactsClient({ contacts }: Props) {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de edición */}
+      {editContact && (
+        <ContactEditModal
+          contact={editContact}
+          open={!!editContact}
+          onOpenChange={(v) => { if (!v) setEditContact(null) }}
+          onUpdated={handleContactUpdated}
+        />
+      )}
 
       {/* Buscador */}
       <div className="relative max-w-sm">
@@ -205,7 +220,11 @@ export default function ContactsClient({ contacts }: Props) {
               </TableRow>
             ) : (
               filtered.map((contact) => (
-                <TableRow key={contact.id} className="hover:bg-gray-50 transition-colors">
+                <TableRow
+                  key={contact.id}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => setEditContact(contact)}
+                >
                   <TableCell className="font-medium text-gray-900">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
@@ -219,7 +238,7 @@ export default function ContactsClient({ contacts }: Props) {
                   <TableCell className="text-gray-600">
                     {contact.company ?? <span className="text-gray-300">—</span>}
                   </TableCell>
-                  <TableCell className="text-gray-600">
+                  <TableCell className="text-gray-600" onClick={(e) => e.stopPropagation()}>
                     {contact.email ? (
                       <a href={`mailto:${contact.email}`} className="hover:text-indigo-600 hover:underline">
                         {contact.email}

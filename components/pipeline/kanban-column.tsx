@@ -6,9 +6,10 @@ import type { Deal } from '@/types'
 import DealCard from './deal-card'
 
 interface Props {
-  stage: string
-  deals: Deal[]
-  onAddDeal: () => void
+  stage:       string
+  deals:       Deal[]
+  onAddDeal:   () => void
+  onCardClick: (dealId: string) => void
 }
 
 const STAGE_STYLES: Record<string, { dot: string; bg: string }> = {
@@ -20,7 +21,7 @@ const STAGE_STYLES: Record<string, { dot: string; bg: string }> = {
   'Cerrado perdido': { dot: 'bg-red-400',    bg: 'bg-red-50'    },
 }
 
-export default function KanbanColumn({ stage, deals, onAddDeal }: Props) {
+export default function KanbanColumn({ stage, deals, onAddDeal, onCardClick }: Props) {
   // isOver es true cuando hay un card siendo arrastrado encima de esta columna
   const { setNodeRef, isOver } = useDroppable({ id: stage })
 
@@ -71,7 +72,7 @@ export default function KanbanColumn({ stage, deals, onAddDeal }: Props) {
         )}
       >
         {deals.map((deal) => (
-          <DealCard key={deal.id} deal={deal} />
+          <DealCard key={deal.id} deal={deal} onCardClick={onCardClick} />
         ))}
 
         {deals.length === 0 && !isOver && (

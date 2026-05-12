@@ -3,6 +3,25 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+export async function updateContact(
+  contactId: string,
+  data: {
+    name: string
+    email: string | null
+    phone: string | null
+    company: string | null
+    source: string | null
+  }
+) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('contacts')
+    .update(data)
+    .eq('id', contactId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/contacts')
+}
+
 export async function createContact(formData: FormData) {
   const supabase = createClient()
 

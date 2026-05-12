@@ -5,6 +5,26 @@ import { revalidatePath } from 'next/cache'
 import { CLOSED_WON_STAGE } from '@/lib/constants'
 import { sendCapiConversion } from '@/lib/meta/capi'
 
+export async function updateDeal(
+  dealId: string,
+  data: {
+    title: string
+    stage: string
+    value: number
+    contact_id: string | null
+    cantidad_videos: number | null
+    forma_pago: string | null
+  }
+) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('deals')
+    .update({ ...data, last_activity_at: new Date().toISOString() })
+    .eq('id', dealId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/pipeline')
+}
+
 export async function createDeal(formData: FormData) {
   const supabase = createClient()
 

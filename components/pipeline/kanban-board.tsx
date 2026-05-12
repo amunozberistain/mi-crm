@@ -13,22 +13,22 @@ import {
 import type { Contact, Deal } from '@/types'
 import KanbanColumn from './kanban-column'
 import DealCard from './deal-card'
+import DealPanel from './deal-panel'
 import NewDealDialog from './new-deal-dialog'
 import { updateDealStage } from '@/app/(dashboard)/pipeline/actions'
 
 interface Props {
-  deals: Deal[]
-  stages: string[]
+  deals:    Deal[]
+  stages:   string[]
   contacts: Pick<Contact, 'id' | 'name' | 'company'>[]
 }
 
 export default function KanbanBoard({ deals: initialDeals, stages, contacts }: Props) {
-  const [deals, setDeals] = useState<Deal[]>(initialDeals)
+  const [deals,      setDeals]      = useState<Deal[]>(initialDeals)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
+  const [panelDeal,  setPanelDeal]  = useState<Deal | null>(null)
 
-  // Estado del diálogo de nuevo deal:
-  // dialogStage guarda la etapa pre-seleccionada según desde dónde se abrió
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogOpen,  setDialogOpen]  = useState(false)
   const [dialogStage, setDialogStage] = useState(stages[0])
 
   const sensors = useSensors(
@@ -38,6 +38,16 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
   function openDialog(stage: string) {
     setDialogStage(stage)
     setDialogOpen(true)
+  }
+
+  function openPanel(dealId: string) {
+    const deal = deals.find(d => d.id === dealId)
+    if (deal) setPanelDeal(deal)
+  }
+
+  function handleDealUpdated(dealId: string, updates: Partial<Deal>) {
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, ...updates } : d))
+    setPanelDeal(prev => prev?.id === dealId ? { ...prev, ...updates } : prev)
   }
 
   function handleDragStart({ active }: DragStartEvent) {
@@ -51,24 +61,18 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
     const dragged = deals.find((d) => d.id === active.id)
     if (!dragged || dragged.stage === newStage) return
 
-    setDeals((prev) =>
-      prev.map((d) =>
+    setDeals(prev =>
+      prev.map(d =>
         d.id === active.id
           ? { ...d, stage: newStage, last_activity_at: new Date().toISOString() }
           : d
       )
     )
+    if (panelDeal?.id === active.id) {
+      setPanelDeal(prev => prev ? { ...prev, stage: newStage } : prev)
+    }
     try {
       await updateDealStage(active.id as string, newStage)
-
-      // Al llegar a "Cerrado ganado": dispara la generación de propuesta PDF en background.
-      if (newStage === 'Cerrado ganado') {
-        fetch('/api/pipeline/generate-proposal', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ dealId: active.id }),
-        }).catch(console.error)
-      }
     } catch {
       setDeals(initialDeals)
     }
@@ -79,7 +83,7 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
 
   return (
     <>
-      {/* Cabecera con resumen y botón global */}
+      {/* Cabecera */}
       <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Pipeline</h1>
@@ -110,6 +114,7 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
               stage={stage}
               deals={deals.filter((d) => d.stage === stage)}
               onAddDeal={() => openDialog(stage)}
+              onCardClick={openPanel}
             />
           ))}
         </div>
@@ -119,13 +124,21 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
         </DragOverlay>
       </DndContext>
 
-      {/* El diálogo vive fuera del DndContext para evitar conflictos con el drag */}
       <NewDealDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         contacts={contacts}
         defaultStage={dialogStage}
       />
+
+      {panelDeal && (
+        <DealPanel
+          deal={panelDeal}
+          contacts={contacts}
+          onClose={() => setPanelDeal(null)}
+          onDealUpdated={handleDealUpdated}
+        />
+      )}
     </>
   )
 }
