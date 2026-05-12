@@ -38,7 +38,7 @@ function BudgetDocument({ draft, date = new Date().toLocaleDateString('es-ES') }
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.logo}>CRM</Text>
+        <Text style={styles.logo}>The Mind Flow AI Studio</Text>
         <Text style={styles.meta}>Presupuesto · {date}</Text>
 
         <Text style={styles.title}>{draft.titulo}</Text>

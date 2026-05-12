@@ -166,7 +166,7 @@ function ProposalDocument({ data, dealTitle, contactName, contactCompany }: Prop
       <Page size="A4" style={s.page}>
         {/* ── Cabecera ── */}
         <View style={s.header}>
-          <Text style={s.headerLabel}>PROPUESTA COMERCIAL</Text>
+          <Text style={s.headerLabel}>THE MIND FLOW AI STUDIO · PROPUESTA COMERCIAL</Text>
           <Text style={s.headerTitle}>{dealTitle}</Text>
           {contactName && (
             <Text style={s.headerMeta}>

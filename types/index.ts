@@ -12,6 +12,8 @@ export type Deal = {
   } | null
   proposal_url: string | null
   proposal_generated_at: string | null
+  budget_url: string | null
+  budget_generated_at: string | null
   cantidad_videos: number | null
   forma_pago: string | null
 }

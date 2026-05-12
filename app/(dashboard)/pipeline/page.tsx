@@ -10,7 +10,7 @@ export default async function PipelinePage() {
   const [{ data: deals }, { data: contacts }] = await Promise.all([
     supabase
       .from('deals')
-      .select('id, title, stage, value, last_activity_at, created_at, contact_id, proposal_url, proposal_generated_at, cantidad_videos, forma_pago, contacts (name, company)')
+      .select('id, title, stage, value, last_activity_at, created_at, contact_id, proposal_url, proposal_generated_at, budget_url, budget_generated_at, cantidad_videos, forma_pago, contacts (name, company)')
       .order('created_at', { ascending: false }),
     supabase
       .from('contacts')

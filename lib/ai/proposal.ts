@@ -37,20 +37,28 @@ export async function generateProposalContent(input: ProposalInput): Promise<Pro
     max_tokens: 2048,
     messages: [{
       role:    'user',
-      content: `Eres un consultor comercial senior. Genera una propuesta comercial profesional en español.
+      content: `Eres el equipo comercial de The Mind Flow AI Studio. Genera una propuesta comercial profesional en español.
 
-Datos del proyecto:
+NUESTRA EMPRESA — THE MIND FLOW AI STUDIO
+Somos una fábrica de contenido UGC (User Generated Content) con Inteligencia Artificial que produce vídeos hiperrealistas con avatares IA para publicidad digital. Entregamos hasta 100 vídeos en 7 días, listos para escalar campañas en Meta Ads y otras plataformas.
+Servicios: vídeos UGC con IA indistinguibles de personas reales, ads estáticos, contenido para campañas de performance.
+Precios de referencia: $49/vídeo (pack 10), $36/vídeo (pack 30), $31/vídeo (pack 50).
+Garantía: si no entregamos en el plazo acordado, vídeo adicional gratis.
+Tono de marca: directo, orientado a resultados, con énfasis en velocidad, volumen y ROI publicitario.
+
+DATOS DEL PROYECTO:
 - Nombre: "${input.title}"
 - Cliente: ${input.contactName    ?? 'No especificado'}
 - Empresa: ${input.contactCompany ?? 'No especificada'}
 - Valor:   ${valueStr}
 
 Instrucciones:
-- Tono profesional, confiado y orientado al valor
-- Infiere el alcance y los entregables del nombre del proyecto
-- Usa "nosotros" para la empresa que presta el servicio
+- Escribe siempre en nombre de The Mind Flow AI Studio (usa "nosotros")
+- Tono directo, confiado, orientado a resultados y ROI publicitario
+- Infiere el alcance y los entregables del nombre del proyecto y el contexto de nuestra empresa
 - No inventes nombres de personas adicionales ni datos de contacto
-- Si el valor es "por determinar", refleja la inversión como "A definir según alcance final"
+- Si el valor es "por determinar", refleja la inversión como "A definir según volumen final"
+- Adapta el cronograma al modelo de entrega de 7 días cuando aplique
 
 Responde ÚNICAMENTE con JSON válido, sin markdown ni texto adicional:
 {
@@ -61,7 +69,7 @@ Responde ÚNICAMENTE con JSON válido, sin markdown ni texto adicional:
   "cronograma": "string — descripción del timeline estimado",
   "inversion": {
     "total": number,
-    "desglose": "string — justificación del precio",
+    "desglose": "string — justificación del precio y precio por vídeo si aplica",
     "forma_de_pago": "string"
   },
   "condiciones": ["string", ...],
