@@ -16,6 +16,43 @@ interface Props {
   contacts: Contact[]
 }
 
+function LeadSourceBadge({ contact }: { contact: Contact }) {
+  if (contact.lead_source === 'meta_lead_ads') {
+    return (
+      <div className="flex flex-col gap-0.5">
+        <span className="inline-flex items-center gap-1 w-fit rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          </svg>
+          Meta Lead Ads
+        </span>
+        {contact.utm_campaign && (
+          <span className="text-xs text-gray-400 pl-1">{contact.utm_campaign}</span>
+        )}
+      </div>
+    )
+  }
+  if (contact.lead_source === 'meta_landing') {
+    return (
+      <div className="flex flex-col gap-0.5">
+        <span className="inline-flex items-center gap-1 w-fit rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          </svg>
+          Meta Landing
+        </span>
+        {contact.utm_campaign && (
+          <span className="text-xs text-gray-400 pl-1">{contact.utm_campaign}</span>
+        )}
+      </div>
+    )
+  }
+  if (contact.source) {
+    return <Badge variant="secondary" className="font-normal">{contact.source}</Badge>
+  }
+  return <span className="text-gray-300">—</span>
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', {
     day: '2-digit', month: 'short', year: 'numeric',
@@ -153,7 +190,7 @@ export default function ContactsClient({ contacts }: Props) {
               <TableHead className="font-semibold text-gray-700">Empresa</TableHead>
               <TableHead className="font-semibold text-gray-700">Email</TableHead>
               <TableHead className="font-semibold text-gray-700">Teléfono</TableHead>
-              <TableHead className="font-semibold text-gray-700">Fuente</TableHead>
+              <TableHead className="font-semibold text-gray-700">Origen</TableHead>
               <TableHead className="font-semibold text-gray-700">Añadido</TableHead>
             </TableRow>
           </TableHeader>
@@ -195,11 +232,7 @@ export default function ContactsClient({ contacts }: Props) {
                     {contact.phone ?? <span className="text-gray-300">—</span>}
                   </TableCell>
                   <TableCell>
-                    {contact.source ? (
-                      <Badge variant="secondary" className="font-normal">{contact.source}</Badge>
-                    ) : (
-                      <span className="text-gray-300">—</span>
-                    )}
+                    <LeadSourceBadge contact={contact} />
                   </TableCell>
                   <TableCell className="text-gray-500 text-sm">
                     {formatDate(contact.created_at)}

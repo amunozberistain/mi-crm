@@ -21,6 +21,18 @@ export type Contact = {
   company: string | null
   source: string | null
   created_at: string
+  // Origen del lead (Meta Ads tracking)
+  lead_source: 'manual' | 'meta_lead_ads' | 'meta_landing' | null
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  utm_content: string | null
+  utm_term: string | null
+  fbclid: string | null
+  meta_form_id: string | null
+  meta_ad_id: string | null
+  meta_adset_id: string | null
+  meta_campaign_id: string | null
 }
 
 export type Activity = {

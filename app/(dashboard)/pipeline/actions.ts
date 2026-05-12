@@ -5,8 +5,6 @@ import { revalidatePath } from 'next/cache'
 
 export async function createDeal(formData: FormData) {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autenticado')
 
   const title = (formData.get('title') as string).trim()
   if (!title) throw new Error('El título es obligatorio')
@@ -22,7 +20,6 @@ export async function createDeal(formData: FormData) {
     stage,
     value,
     probability,
-    owner_id: user.id,
     last_activity_at: new Date().toISOString(),
   })
 
