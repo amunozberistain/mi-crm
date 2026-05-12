@@ -45,7 +45,7 @@ export default async function FunnelPage() {
 
   // Deals activos vinculados a leads de Meta
   const metaDeals = (allDeals ?? []).filter((d) => {
-    const contact = d.contacts as { lead_source: string | null } | null
+    const contact = (d.contacts as unknown) as { lead_source: string | null } | null
     return contact?.lead_source === 'meta_lead_ads' || contact?.lead_source === 'meta_landing'
   })
   const activeDeals = metaDeals.filter((d) => !CLOSED_STAGES.includes(d.stage)).length
@@ -65,7 +65,7 @@ export default async function FunnelPage() {
   }
 
   for (const d of metaDeals) {
-    const contact = d.contacts as { utm_campaign: string | null; meta_campaign_id: string | null } | null
+    const contact = (d.contacts as unknown) as { utm_campaign: string | null; meta_campaign_id: string | null } | null
     const key = contact?.utm_campaign ?? contact?.meta_campaign_id ?? 'Sin campaña'
     if (!campaignMap[key]) continue
     if (d.stage === CLOSED_WON_STAGE) {

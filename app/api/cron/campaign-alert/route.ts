@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
   const wonMap: Record<string, number> = {}
   for (const row of wonData ?? []) {
-    const contact = row.contacts as { meta_campaign_id: string | null } | null
+    const contact = (row.contacts as unknown) as { meta_campaign_id: string | null } | null
     const id = contact?.meta_campaign_id
     if (id) wonMap[id] = (wonMap[id] ?? 0) + 1
   }

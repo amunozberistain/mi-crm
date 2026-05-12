@@ -59,7 +59,7 @@ async function sendCapiForDeal(
 
   if (!deal) return
 
-  const contact = deal.contacts as { email: string | null; phone: string | null } | null
+  const contact = (deal.contacts as unknown) as { email: string | null; phone: string | null } | null
 
   await sendCapiConversion({
     email:   contact?.email ?? null,

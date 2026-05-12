@@ -56,7 +56,7 @@ export default function FunnelViz({ steps }: Props) {
             fill="#fff"
             stroke="none"
             dataKey="value"
-            formatter={(v: number) => v.toLocaleString('es-ES')}
+            formatter={(v: unknown) => Number(v).toLocaleString('es-ES')}
             style={{ fontSize: 14, fontWeight: 700 }}
           />
         </Funnel>

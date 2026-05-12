@@ -21,7 +21,7 @@ export async function generateProposalForDeal(dealId: string): Promise<string> {
 
   if (error || !deal) throw new Error(`Deal no encontrado: ${dealId}`)
 
-  const contact = deal.contacts as { name: string; company: string | null; email: string | null } | null
+  const contact = (deal.contacts as unknown) as { name: string; company: string | null; email: string | null } | null
 
   // 2. Claude genera el contenido estructurado
   const content = await generateProposalContent({
