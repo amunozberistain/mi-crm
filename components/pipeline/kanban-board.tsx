@@ -60,6 +60,16 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
     )
     try {
       await updateDealStage(active.id as string, newStage)
+
+      // Al llegar a "Propuesta": dispara la generación de PDF en background.
+      // No esperamos la respuesta — el PDF estará listo en ~10s.
+      if (newStage === 'Propuesta') {
+        fetch('/api/pipeline/generate-proposal', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ dealId: active.id }),
+        }).catch(console.error)
+      }
     } catch {
       setDeals(initialDeals)
     }

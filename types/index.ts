@@ -11,6 +11,8 @@ export type Deal = {
     name: string
     company: string | null
   } | null
+  proposal_url: string | null
+  proposal_generated_at: string | null
 }
 
 export type Contact = {
