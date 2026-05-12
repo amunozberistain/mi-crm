@@ -7,8 +7,8 @@ import type { BudgetDraft } from '@/lib/ai/budget'
 Font.register({
   family: 'Playfair',
   fonts: [
-    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@5/files/playfair-display-latin-400-normal.woff2' },
-    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@5/files/playfair-display-latin-700-normal.woff2', fontWeight: 'bold' },
+    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@5/files/playfair-display-latin-400-normal.woff' },
+    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@5/files/playfair-display-latin-700-normal.woff', fontWeight: 'bold' },
   ],
 })
 Font.registerHyphenationCallback((w) => [w])
