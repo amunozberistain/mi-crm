@@ -5,13 +5,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import type { ProposalContent } from '@/lib/ai/proposal'
 
 interface Props {
-  dealId:         string
-  dealTitle:      string
-  contactName:    string | null
-  contactCompany: string | null
-  open:           boolean
-  onOpenChange:   (open: boolean) => void
-  onSuccess:      (url: string) => void
+  dealId:          string
+  dealTitle:       string
+  contactName:     string | null
+  contactCompany:  string | null
+  initialContent?: ProposalContent | null  // provided → edit mode, skip AI extraction
+  open:            boolean
+  onOpenChange:    (open: boolean) => void
+  onSuccess:       (url: string, content: ProposalContent) => void
 }
 
 type Step = 'extracting' | 'edit' | 'rendering' | 'done' | 'error'
@@ -20,7 +21,7 @@ function arrToText(arr: string[]) { return arr.join('\n') }
 function textToArr(text: string)  { return text.split('\n').map(s => s.trim()).filter(Boolean) }
 
 export default function ProposalModal({
-  dealId, dealTitle, contactName, contactCompany, open, onOpenChange, onSuccess,
+  dealId, dealTitle, contactName, contactCompany, initialContent, open, onOpenChange, onSuccess,
 }: Props) {
   const [step,    setStep]    = useState<Step>('extracting')
   const [content, setContent] = useState<ProposalContent | null>(null)
@@ -28,24 +29,47 @@ export default function ProposalModal({
   const [error,   setError]   = useState<string | null>(null)
 
   // Editable fields
-  const [titulo,         setTitulo]         = useState('')
-  const [resumen,        setResumen]        = useState('')
-  const [alcance,        setAlcance]        = useState('')
-  const [entregables,    setEntregables]    = useState('')
-  const [cronograma,     setCronograma]     = useState('')
-  const [invTotal,       setInvTotal]       = useState(0)
-  const [invDesglose,    setInvDesglose]    = useState('')
-  const [invFormaPago,   setInvFormaPago]   = useState('')
-  const [condiciones,    setCondiciones]    = useState('')
-  const [siguientePaso,  setSiguientePaso]  = useState('')
+  const [titulo,        setTitulo]        = useState('')
+  const [resumen,       setResumen]       = useState('')
+  const [alcance,       setAlcance]       = useState('')
+  const [entregables,   setEntregables]   = useState('')
+  const [cronograma,    setCronograma]    = useState('')
+  const [invTotal,      setInvTotal]      = useState(0)
+  const [invDesglose,   setInvDesglose]   = useState('')
+  const [invFormaPago,  setInvFormaPago]  = useState('')
+  const [condiciones,   setCondiciones]   = useState('')
+  const [siguientePaso, setSiguientePaso] = useState('')
 
-  // Auto-extract when the modal opens
+  const isEditMode = !!initialContent
+
+  function loadContentIntoState(c: ProposalContent) {
+    setContent(c)
+    setTitulo(c.titulo)
+    setResumen(c.resumen)
+    setAlcance(arrToText(c.alcance))
+    setEntregables(arrToText(c.entregables))
+    setCronograma(c.cronograma)
+    setInvTotal(c.inversion.total)
+    setInvDesglose(c.inversion.desglose)
+    setInvFormaPago(c.inversion.forma_de_pago)
+    setCondiciones(arrToText(c.condiciones))
+    setSiguientePaso(c.siguiente_paso)
+  }
+
+  // Reinitialise every time the modal opens — open toggle is the trigger.
+  // initialContent/dealId intentionally excluded: we want stable extraction per open, not on prop change.
   useEffect(() => {
     if (!open) return
-    setStep('extracting')
     setError(null)
     setPdfUrl(null)
 
+    if (initialContent) {
+      loadContentIntoState(initialContent)
+      setStep('edit')
+      return
+    }
+
+    setStep('extracting')
     fetch('/api/pipeline/extract-proposal', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -54,17 +78,7 @@ export default function ProposalModal({
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text())
         const { content: c } = await res.json() as { content: ProposalContent }
-        setContent(c)
-        setTitulo(c.titulo)
-        setResumen(c.resumen)
-        setAlcance(arrToText(c.alcance))
-        setEntregables(arrToText(c.entregables))
-        setCronograma(c.cronograma)
-        setInvTotal(c.inversion.total)
-        setInvDesglose(c.inversion.desglose)
-        setInvFormaPago(c.inversion.forma_de_pago)
-        setCondiciones(arrToText(c.condiciones))
-        setSiguientePaso(c.siguiente_paso)
+        loadContentIntoState(c)
         setStep('edit')
       })
       .catch((e) => {
@@ -80,15 +94,15 @@ export default function ProposalModal({
     const editedContent: ProposalContent = {
       titulo,
       resumen,
-      alcance:      textToArr(alcance),
-      entregables:  textToArr(entregables),
+      alcance:        textToArr(alcance),
+      entregables:    textToArr(entregables),
       cronograma,
       inversion: {
         total:         invTotal,
         desglose:      invDesglose,
         forma_de_pago: invFormaPago,
       },
-      condiciones:   textToArr(condiciones),
+      condiciones:    textToArr(condiciones),
       siguiente_paso: siguientePaso,
     }
     try {
@@ -100,7 +114,7 @@ export default function ProposalModal({
       if (!res.ok) throw new Error(await res.text())
       const { url } = await res.json() as { url: string }
       setPdfUrl(url)
-      onSuccess(url)
+      onSuccess(url, editedContent)
       setStep('done')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error generando el PDF')
@@ -122,7 +136,7 @@ export default function ProposalModal({
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-base">
-            Crear propuesta
+            {isEditMode ? 'Editar propuesta' : 'Crear propuesta'}
             <span className="block text-xs font-normal text-gray-400 mt-0.5 truncate">{dealTitle}</span>
           </DialogTitle>
         </DialogHeader>
@@ -235,7 +249,7 @@ export default function ProposalModal({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    Generando PDF…
+                    Guardando PDF…
                   </>
                 ) : (
                   <>
@@ -243,7 +257,7 @@ export default function ProposalModal({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Generar PDF final
+                    {isEditMode ? 'Guardar PDF final' : 'Generar PDF final'}
                   </>
                 )}
               </button>
@@ -260,7 +274,9 @@ export default function ProposalModal({
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-gray-900">Propuesta generada</p>
+              <p className="font-semibold text-gray-900">
+                {isEditMode ? 'Propuesta actualizada' : 'Propuesta generada'}
+              </p>
               <p className="text-sm text-gray-500 mt-0.5">El PDF está listo para compartir</p>
             </div>
             <div className="flex gap-3">

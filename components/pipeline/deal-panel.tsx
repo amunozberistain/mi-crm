@@ -7,6 +7,8 @@ import { PIPELINE_STAGES, FORMA_PAGO_OPTIONS } from '@/lib/constants'
 import BudgetModal from './budget-modal'
 import ProposalModal from './proposal-modal'
 import type { Contact, Deal } from '@/types'
+import type { BudgetDraft } from '@/lib/ai/budget'
+import type { ProposalContent } from '@/lib/ai/proposal'
 
 interface Props {
   deal:            Deal
@@ -31,6 +33,15 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDe
 
   const [budgetUrl,   setBudgetUrl]   = useState<string | null>(deal.budget_url)
   const [proposalUrl, setProposalUrl] = useState<string | null>(deal.proposal_url)
+
+  const [budgetDraft,     setBudgetDraft]     = useState<BudgetDraft | null>(
+    deal.budget_draft as BudgetDraft | null ?? null
+  )
+  const [proposalContent, setProposalContent] = useState<ProposalContent | null>(
+    deal.proposal_content as ProposalContent | null ?? null
+  )
+  const [budgetMode,   setBudgetMode]   = useState<'new' | 'edit'>('new')
+  const [proposalMode, setProposalMode] = useState<'new' | 'edit'>('new')
 
   const [budgetOpen,   setBudgetOpen]   = useState(false)
   const [proposalOpen, setProposalOpen] = useState(false)
@@ -244,7 +255,21 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDe
                     Ver presupuesto
                   </a>
                   <span className="text-gray-300">·</span>
-                  <button onClick={() => setBudgetOpen(true)} className="text-xs text-gray-400 hover:text-violet-600">
+                  {budgetDraft && (
+                    <>
+                      <button
+                        onClick={() => { setBudgetMode('edit'); setBudgetOpen(true) }}
+                        className="text-xs text-gray-400 hover:text-violet-600"
+                      >
+                        Editar PDF
+                      </button>
+                      <span className="text-gray-300">·</span>
+                    </>
+                  )}
+                  <button
+                    onClick={() => { setBudgetMode('new'); setBudgetOpen(true) }}
+                    className="text-xs text-gray-400 hover:text-violet-600"
+                  >
                     Regenerar
                   </button>
                   <span className="text-gray-300">·</span>
@@ -280,7 +305,7 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDe
                 </div>
               ) : (
                 <button
-                  onClick={() => setBudgetOpen(true)}
+                  onClick={() => { setBudgetMode('new'); setBudgetOpen(true) }}
                   className="text-xs text-violet-600 hover:text-violet-800 font-medium underline underline-offset-2"
                 >
                   Generar presupuesto
@@ -306,7 +331,21 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDe
                     Ver propuesta
                   </a>
                   <span className="text-gray-300">·</span>
-                  <button onClick={() => setProposalOpen(true)} className="text-xs text-gray-400 hover:text-indigo-600">
+                  {proposalContent && (
+                    <>
+                      <button
+                        onClick={() => { setProposalMode('edit'); setProposalOpen(true) }}
+                        className="text-xs text-gray-400 hover:text-indigo-600"
+                      >
+                        Editar PDF
+                      </button>
+                      <span className="text-gray-300">·</span>
+                    </>
+                  )}
+                  <button
+                    onClick={() => { setProposalMode('new'); setProposalOpen(true) }}
+                    className="text-xs text-gray-400 hover:text-indigo-600"
+                  >
                     Regenerar
                   </button>
                   <span className="text-gray-300">·</span>
@@ -342,7 +381,7 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDe
                 </div>
               ) : (
                 <button
-                  onClick={() => setProposalOpen(true)}
+                  onClick={() => { setProposalMode('new'); setProposalOpen(true) }}
                   className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline underline-offset-2"
                 >
                   Crear propuesta
@@ -423,11 +462,13 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDe
         dealId={deal.id}
         dealTitle={deal.title}
         formaPago={formaPago || deal.forma_pago}
+        initialDraft={budgetMode === 'edit' ? budgetDraft : null}
         open={budgetOpen}
         onOpenChange={setBudgetOpen}
-        onSuccess={(url) => {
+        onSuccess={(url, draft) => {
           setBudgetUrl(url)
-          onDealUpdated(deal.id, { budget_url: url })
+          setBudgetDraft(draft)
+          onDealUpdated(deal.id, { budget_url: url, budget_draft: draft as unknown as Record<string, unknown> })
         }}
       />
 
@@ -436,11 +477,13 @@ export default function DealPanel({ deal, contacts, onClose, onDealUpdated, onDe
         dealTitle={deal.title}
         contactName={contact?.name ?? deal.contacts?.name ?? null}
         contactCompany={contact?.company ?? deal.contacts?.company ?? null}
+        initialContent={proposalMode === 'edit' ? proposalContent : null}
         open={proposalOpen}
         onOpenChange={setProposalOpen}
-        onSuccess={(url) => {
+        onSuccess={(url, content) => {
           setProposalUrl(url)
-          onDealUpdated(deal.id, { proposal_url: url })
+          setProposalContent(content)
+          onDealUpdated(deal.id, { proposal_url: url, proposal_content: content as unknown as Record<string, unknown> })
         }}
       />
     </>
