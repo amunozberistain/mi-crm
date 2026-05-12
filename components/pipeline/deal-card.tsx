@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import type { Deal } from '@/types'
 
 interface Props {
-  deal:        Deal
-  isOverlay?:  boolean
+  deal:         Deal
+  isOverlay?:   boolean
   onCardClick?: (dealId: string) => void
 }
 
@@ -22,11 +22,25 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
     disabled: isOverlay,
   })
 
+  // Track pointer start position so we can distinguish a tap from a drag
+  const pointerStart = useRef<{ x: number; y: number } | null>(null)
+
   const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined
   const days  = getDaysAgo(deal.last_activity_at)
 
-  function handleClick(e: React.MouseEvent) {
-    if (!isOverlay && !isDragging) {
+  function handlePointerDown(e: React.PointerEvent) {
+    pointerStart.current = { x: e.clientX, y: e.clientY }
+    // Also call dnd-kit's listener so dragging still works
+    ;(listeners as { onPointerDown?: React.PointerEventHandler })?.onPointerDown?.(e)
+  }
+
+  function handlePointerUp(e: React.PointerEvent) {
+    if (!pointerStart.current || isOverlay) return
+    const dx = e.clientX - pointerStart.current.x
+    const dy = e.clientY - pointerStart.current.y
+    pointerStart.current = null
+    // Only treat as a click if the pointer barely moved (not a drag)
+    if (dx * dx + dy * dy < 25 && !isDragging) {
       onCardClick?.(deal.id)
     }
   }
@@ -37,7 +51,9 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
       style={style}
       {...listeners}
       {...attributes}
-      onClick={handleClick}
+      // Override onPointerDown with our merged handler; keep onPointerUp separate
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
       className={cn(
         'bg-white rounded-lg p-3 shadow-sm border border-gray-100',
         'cursor-grab active:cursor-grabbing select-none touch-none',
@@ -61,12 +77,12 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
         </p>
       )}
 
-      {/* PDF badges — stop click propagation so card panel doesn't open */}
+      {/* PDF badges — stop propagation so card panel doesn't open */}
       {!isOverlay && (deal.budget_url || deal.proposal_url) && (
         <div
           className="flex flex-wrap gap-x-2 mt-2"
-          onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
         >
           {deal.budget_url && (
             <a
