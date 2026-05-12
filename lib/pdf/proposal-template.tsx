@@ -73,11 +73,13 @@ const s = StyleSheet.create({
     color: '#374151',
   },
   // Caja de inversión
+  // @react-pdf/renderer no soporta shorthands CSS — se expanden las propiedades
   investmentBox: {
     backgroundColor: '#f5f3ff',
     borderRadius: 6,
     padding: 14,
-    borderLeft: '3pt solid #6366f1',
+    borderLeftWidth: 3,
+    borderLeftColor: '#6366f1',
   },
   investmentTotal: {
     fontFamily: 'Helvetica-Bold',

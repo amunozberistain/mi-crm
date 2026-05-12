@@ -21,9 +21,17 @@ export async function POST(request: NextRequest) {
   // Responder 202 inmediatamente — el Kanban puede seguir funcionando
   // mientras el PDF se genera en background
   waitUntil(
-    generateProposalForDeal(dealId).catch((err) => {
-      console.error(`Error generando propuesta para deal ${dealId}:`, err)
-    })
+    generateProposalForDeal(dealId)
+      .then((url) => {
+        console.log(`[proposal] Deal ${dealId} — PDF generado OK: ${url}`)
+      })
+      .catch((err: unknown) => {
+        // El error completo aparece en Vercel → Functions → logs
+        console.error(`[proposal] Deal ${dealId} — ERROR:`, err)
+        if (err instanceof Error) {
+          console.error(`[proposal] Stack: ${err.stack}`)
+        }
+      })
   )
 
   return NextResponse.json({ status: 'generating', dealId })
