@@ -12,7 +12,7 @@ export async function generateBudgetForDeal(dealId: string, transcript: string):
   // 1. Contexto del deal (título + contacto) para enriquecer el prompt
   const { data: deal, error } = await admin
     .from('deals')
-    .select('id, title, cantidad_videos, contacts(name, company)')
+    .select('id, title, cantidad_videos, forma_pago, contacts(name, company)')
     .eq('id', dealId)
     .single()
 
@@ -29,7 +29,7 @@ export async function generateBudgetForDeal(dealId: string, transcript: string):
 
   // 3. Renderizar PDF
   log(dealId, 'Renderizando PDF…')
-  const buffer = await buildBudgetPDF(draft)
+  const buffer = await buildBudgetPDF(draft, (deal as unknown as { forma_pago: string | null }).forma_pago)
   log(dealId, `PDF: ${buffer.length} bytes`)
 
   // 4. Subir a Supabase Storage (bucket "proposals", ruta budgets/{dealId}/…)
