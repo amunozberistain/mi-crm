@@ -3,7 +3,6 @@ export type Deal = {
   title: string
   stage: string
   value: number
-  probability: number
   last_activity_at: string
   created_at: string
   contact_id: string | null
@@ -13,6 +12,8 @@ export type Deal = {
   } | null
   proposal_url: string | null
   proposal_generated_at: string | null
+  cantidad_videos: number | null
+  forma_pago: string | null
 }
 
 export type Contact = {

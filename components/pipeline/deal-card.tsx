@@ -71,8 +71,8 @@ export default function DealCard({ deal, isOverlay = false }: Props) {
         </p>
       )}
 
-      {/* Propuesta PDF — solo en etapa "Propuesta" y no en el overlay */}
-      {!isOverlay && deal.stage === 'Propuesta' && (
+      {/* Propuesta PDF — solo en etapa "Cerrado ganado" y no en el overlay */}
+      {!isOverlay && deal.stage === 'Cerrado ganado' && (
         <div className="mt-2" onPointerDown={(e) => e.stopPropagation()}>
           {deal.proposal_url ? (
             <a
@@ -102,6 +102,22 @@ export default function DealCard({ deal, isOverlay = false }: Props) {
             >
               Generar propuesta PDF
             </button>
+          )}
+        </div>
+      )}
+
+      {/* Metadatos: videos + forma de pago */}
+      {(deal.cantidad_videos || deal.forma_pago) && (
+        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2">
+          {deal.cantidad_videos && (
+            <span className="text-xs text-gray-400">
+              {deal.cantidad_videos} video{deal.cantidad_videos !== 1 ? 's' : ''}
+            </span>
+          )}
+          {deal.forma_pago && (
+            <span className="text-xs text-gray-400 truncate">
+              {deal.forma_pago.startsWith('Upfront') ? 'Upfront' : '50/50'}
+            </span>
           )}
         </div>
       )}

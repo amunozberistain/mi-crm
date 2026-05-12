@@ -11,17 +11,19 @@ export async function createDeal(formData: FormData) {
   const title = (formData.get('title') as string).trim()
   if (!title) throw new Error('El título es obligatorio')
 
-  const contact_id  = (formData.get('contact_id') as string) || null
-  const stage       = (formData.get('stage') as string) || 'Nuevo lead'
-  const value       = parseFloat(formData.get('value') as string) || 0
-  const probability = parseInt(formData.get('probability') as string) || 0
+  const contact_id      = (formData.get('contact_id') as string) || null
+  const stage           = (formData.get('stage') as string) || 'Nuevo lead'
+  const value           = parseFloat(formData.get('value') as string) || 0
+  const cantidad_videos = parseInt(formData.get('cantidad_videos') as string) || null
+  const forma_pago      = (formData.get('forma_pago') as string) || null
 
   const { error } = await supabase.from('deals').insert({
     title,
     contact_id: contact_id || null,
     stage,
     value,
-    probability,
+    cantidad_videos,
+    forma_pago,
     last_activity_at: new Date().toISOString(),
   })
 

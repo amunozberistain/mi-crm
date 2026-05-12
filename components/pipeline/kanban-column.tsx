@@ -12,11 +12,12 @@ interface Props {
 }
 
 const STAGE_STYLES: Record<string, { dot: string; bg: string }> = {
-  'Nuevo lead': { dot: 'bg-gray-400',   bg: 'bg-gray-50'    },
-  'Contactado': { dot: 'bg-blue-500',   bg: 'bg-blue-50'    },
-  'Demo':       { dot: 'bg-violet-500', bg: 'bg-violet-50'  },
-  'Propuesta':  { dot: 'bg-amber-500',  bg: 'bg-amber-50'   },
-  'Cerrado':    { dot: 'bg-green-500',  bg: 'bg-green-50'   },
+  'Nuevo lead':      { dot: 'bg-gray-400',   bg: 'bg-gray-50'   },
+  'Contactado':      { dot: 'bg-blue-500',   bg: 'bg-blue-50'   },
+  'Follow up 1':     { dot: 'bg-violet-500', bg: 'bg-violet-50' },
+  'Follow up 2':     { dot: 'bg-amber-500',  bg: 'bg-amber-50'  },
+  'Cerrado ganado':  { dot: 'bg-green-500',  bg: 'bg-green-50'  },
+  'Cerrado perdido': { dot: 'bg-red-400',    bg: 'bg-red-50'    },
 }
 
 export default function KanbanColumn({ stage, deals, onAddDeal }: Props) {

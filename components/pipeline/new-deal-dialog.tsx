@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createDeal } from '@/app/(dashboard)/pipeline/actions'
-import { PIPELINE_STAGES } from '@/lib/constants'
+import { PIPELINE_STAGES, FORMA_PAGO_OPTIONS } from '@/lib/constants'
 import type { Contact } from '@/types'
 
 interface Props {
@@ -87,7 +87,7 @@ export default function NewDealDialog({ open, onOpenChange, contacts = [], defau
             </select>
           </div>
 
-          {/* Valor + probabilidad en la misma fila */}
+          {/* Valor + cantidad de videos en la misma fila */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="deal-value">Valor (€)</Label>
@@ -101,16 +101,30 @@ export default function NewDealDialog({ open, onOpenChange, contacts = [], defau
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="deal-prob">Probabilidad (%)</Label>
+              <Label htmlFor="deal-videos">Cantidad de videos</Label>
               <Input
-                id="deal-prob"
-                name="probability"
+                id="deal-videos"
+                name="cantidad_videos"
                 type="number"
-                min="0"
-                max="100"
-                placeholder="50"
+                min="1"
+                placeholder="3"
               />
             </div>
+          </div>
+
+          {/* Forma de pago */}
+          <div className="space-y-1.5">
+            <Label htmlFor="deal-forma-pago">Forma de pago</Label>
+            <select
+              id="deal-forma-pago"
+              name="forma_pago"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <option value="">Sin especificar</option>
+              {FORMA_PAGO_OPTIONS.map((op) => (
+                <option key={op} value={op}>{op}</option>
+              ))}
+            </select>
           </div>
 
           {error && (
