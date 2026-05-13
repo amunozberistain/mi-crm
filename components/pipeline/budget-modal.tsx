@@ -1,16 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { BudgetDraft } from '@/lib/ai/budget'
 
 interface Props {
-  dealId:       string
-  dealTitle:    string
-  formaPago?:   string | null
-  open:         boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess:    (url: string) => void
+  dealId:        string
+  dealTitle:     string
+  formaPago?:    string | null
+  initialDraft?: BudgetDraft | null   // provided → open in edit mode, skip transcript
+  open:          boolean
+  onOpenChange:  (open: boolean) => void
+  onSuccess:     (url: string, draft: BudgetDraft) => void
 }
 
 type Step = 'transcript' | 'edit' | 'done'
@@ -22,19 +23,22 @@ const emptyPartida = (): Partida => ({ concepto: '', descripcion: '', cantidad: 
 const usd = (n: number) =>
   '$' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n)
 
-export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpenChange, onSuccess }: Props) {
-  const [step,       setStep]       = useState<Step>('transcript')
+export default function BudgetModal({
+  dealId, dealTitle, formaPago, initialDraft, open, onOpenChange, onSuccess,
+}: Props) {
+  const isEditMode = !!initialDraft
+
+  const [step,       setStep]       = useState<Step>(isEditMode ? 'edit' : 'transcript')
   const [transcript, setTranscript] = useState('')
   const [draft,      setDraft]      = useState<BudgetDraft | null>(null)
   const [pdfUrl,     setPdfUrl]     = useState<string | null>(null)
   const [loading,    setLoading]    = useState(false)
   const [error,      setError]      = useState<string | null>(null)
 
-  // draft field state (only populated in 'edit' step)
   const [titulo,      setTitulo]      = useState('')
   const [cliente,     setCliente]     = useState('')
   const [descripcion, setDescripcion] = useState('')
-  const [partidas,    setPartidas]    = useState<Partida[]>([])
+  const [partidas,    setPartidas]    = useState<Partida[]>([emptyPartida()])
   const [plazo,       setPlazo]       = useState('')
   const [notas,       setNotas]       = useState('')
 
@@ -47,6 +51,24 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
     setPlazo(d.plazo_estimado)
     setNotas(d.notas)
   }
+
+  // Reinitialise every time the modal opens
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!open) return
+    setError(null)
+    setPdfUrl(null)
+    setLoading(false)
+    if (initialDraft) {
+      loadDraftIntoState(initialDraft)
+      setStep('edit')
+    } else {
+      setStep('transcript')
+      setTranscript('')
+      setDraft(null)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   async function handleExtract() {
     if (!transcript.trim() || loading) return
@@ -90,7 +112,7 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
       if (!res.ok) throw new Error(await res.text())
       const { url } = await res.json() as { url: string }
       setPdfUrl(url)
-      onSuccess(url)
+      onSuccess(url, editedDraft)
       setStep('done')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error generando el PDF')
@@ -102,13 +124,6 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
   function handleClose(val: boolean) {
     if (loading) return
     onOpenChange(val)
-    if (!val) {
-      setStep('transcript')
-      setTranscript('')
-      setDraft(null)
-      setPdfUrl(null)
-      setError(null)
-    }
   }
 
   function updatePartida(i: number, field: keyof Partida, raw: string) {
@@ -123,19 +138,22 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
 
   const total = partidas.reduce((s, p) => s + p.cantidad * p.precio_unitario, 0)
 
+  const inputCls = 'w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const textCls  = `${inputCls} resize-none`
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-base">
-            Generar presupuesto
+            {isEditMode ? 'Editar presupuesto' : 'Generar presupuesto'}
             <span className="block text-xs font-normal text-gray-400 mt-0.5 truncate">{dealTitle}</span>
           </DialogTitle>
         </DialogHeader>
 
         <div className="overflow-y-auto flex-1 pr-1">
 
-        {/* ── Step 1: Transcript ── */}
+        {/* ── Step 1: Transcript (only in new mode) ── */}
         {step === 'transcript' && (
           <div className="space-y-4 mt-1">
             <div>
@@ -192,25 +210,17 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
         )}
 
         {/* ── Step 2: Edit draft ── */}
-        {step === 'edit' && draft && (
+        {step === 'edit' && (draft || isEditMode) && (
           <div className="space-y-5 mt-1">
             {/* Título + Cliente */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Título del proyecto</label>
-                <input
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                <input value={titulo} onChange={(e) => setTitulo(e.target.value)} className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Cliente</label>
-                <input
-                  value={cliente}
-                  onChange={(e) => setCliente(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                <input value={cliente} onChange={(e) => setCliente(e.target.value)} className={inputCls} />
               </div>
             </div>
 
@@ -221,7 +231,7 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={3}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                className={textCls}
               />
             </div>
 
@@ -319,7 +329,7 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
                 <input
                   value={plazo}
                   onChange={(e) => setPlazo(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className={inputCls}
                 />
               </div>
               <div>
@@ -328,7 +338,7 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
                   value={notas}
                   onChange={(e) => setNotas(e.target.value)}
                   rows={2}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  className={textCls}
                 />
               </div>
             </div>
@@ -336,12 +346,16 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
             {error && <p className="text-sm text-red-600 bg-red-50 rounded-md px-3 py-2">{error}</p>}
 
             <div className="flex items-center justify-between pt-1">
-              <button
-                onClick={() => setStep('transcript')}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                ← Volver
-              </button>
+              {!isEditMode ? (
+                <button
+                  onClick={() => setStep('transcript')}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  ← Volver
+                </button>
+              ) : (
+                <span />
+              )}
               <div className="flex gap-2">
                 <button
                   onClick={() => handleClose(false)}
@@ -368,7 +382,7 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      Generar PDF final
+                      {isEditMode ? 'Guardar PDF final' : 'Generar PDF final'}
                     </>
                   )}
                 </button>
@@ -386,7 +400,9 @@ export default function BudgetModal({ dealId, dealTitle, formaPago, open, onOpen
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-gray-900">Presupuesto generado</p>
+              <p className="font-semibold text-gray-900">
+                {isEditMode ? 'Presupuesto actualizado' : 'Presupuesto generado'}
+              </p>
               <p className="text-sm text-gray-500 mt-0.5">El PDF está listo para compartir con el cliente</p>
             </div>
             <div className="flex gap-3">

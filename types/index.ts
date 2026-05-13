@@ -17,6 +17,8 @@ export type Deal = {
   cantidad_videos: number | null
   forma_pago: string | null
   notes: string | null
+  budget_draft: Record<string, unknown> | null
+  proposal_content: Record<string, unknown> | null
 }
 
 export type Contact = {

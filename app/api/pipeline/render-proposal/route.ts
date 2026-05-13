@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
     await admin.from('deals').update({
       proposal_url:          publicUrl,
       proposal_generated_at: new Date().toISOString(),
+      proposal_content:      content,
     }).eq('id', dealId)
 
     return NextResponse.json({ url: publicUrl })

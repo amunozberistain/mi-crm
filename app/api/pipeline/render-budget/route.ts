@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     await admin.from('deals').update({
       budget_url:          publicUrl,
       budget_generated_at: new Date().toISOString(),
+      budget_draft:        draft,
     }).eq('id', dealId)
 
     return NextResponse.json({ url: publicUrl })
