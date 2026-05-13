@@ -46,9 +46,24 @@ export type Contact = {
 
 export type Activity = {
   id: string
+  user_id: string
+  title: string
+  description: string | null
+  start_at: string
+  end_at: string
+  color: string
   deal_id: string | null
   contact_id: string | null
-  type: 'llamada' | 'email' | 'reunión' | 'nota' | 'tarea'
-  notes: string | null
+  source: 'manual' | 'google'
+  google_event_id: string | null
   created_at: string
+}
+
+export type GoogleCalendarEvent = {
+  id: string
+  title: string
+  start_at: string
+  end_at: string
+  is_all_day: boolean
+  html_link: string | null
 }
