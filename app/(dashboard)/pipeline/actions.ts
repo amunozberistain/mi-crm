@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CLOSED_WON_STAGE } from '@/lib/constants'
 import { sendCapiConversion } from '@/lib/meta/capi'
-import { createStripeCustomerAndInvoices } from '@/lib/stripe'
 
 export async function updateDeal(
   dealId: string,
@@ -19,25 +18,12 @@ export async function updateDeal(
   }
 ) {
   const supabase = createClient()
-
-  // Comprobamos la etapa anterior para detectar si es un nuevo cierre ganado
-  const { data: prev } = await supabase
-    .from('deals')
-    .select('stage')
-    .eq('id', dealId)
-    .single()
-
   const { error } = await supabase
     .from('deals')
     .update({ ...data, last_activity_at: new Date().toISOString() })
     .eq('id', dealId)
   if (error) throw new Error(error.message)
   revalidatePath('/pipeline')
-
-  // Stripe sólo cuando el deal pasa AHORA a Cerrado ganado (no si ya lo estaba)
-  if (data.stage === CLOSED_WON_STAGE && prev?.stage !== CLOSED_WON_STAGE) {
-    void createStripeInvoiceForDeal(supabase, dealId)
-  }
 }
 
 export async function deleteDeal(dealId: string) {
@@ -95,10 +81,9 @@ export async function updateDealStage(dealId: string, newStage: string) {
 
   revalidatePath('/pipeline')
 
-  // Al cerrar ganado: Meta CAPI + Stripe (fire-and-forget)
+  // Al cerrar ganado: enviar evento de conversión a Meta CAPI (fire-and-forget)
   if (newStage === CLOSED_WON_STAGE) {
     void sendCapiForDeal(supabase, dealId)
-    void createStripeInvoiceForDeal(supabase, dealId)
   }
 }
 
@@ -122,34 +107,4 @@ async function sendCapiForDeal(
     value:   (deal.value as number) ?? 0,
     orderId: deal.id as string,
   })
-}
-
-async function createStripeInvoiceForDeal(
-  supabase: ReturnType<typeof createClient>,
-  dealId: string
-) {
-  if (!process.env.STRIPE_SECRET_KEY) return   // Stripe no configurado → saltar
-
-  const { data: deal } = await supabase
-    .from('deals')
-    .select('id, title, value, forma_pago, contacts(name, email)')
-    .eq('id', dealId)
-    .single()
-
-  if (!deal || !deal.value) return
-
-  const contact = (deal.contacts as unknown) as { name: string | null; email: string | null } | null
-
-  try {
-    const result = await createStripeCustomerAndInvoices({
-      dealTitle:    deal.title as string,
-      dealValue:    deal.value as number,
-      formaPago:    deal.forma_pago as string | null,
-      contactName:  contact?.name  ?? null,
-      contactEmail: contact?.email ?? null,
-    })
-    console.log(`[stripe] Deal ${dealId} → customer ${result.customerId}, facturas: ${result.invoiceIds.join(', ')}`)
-  } catch (err) {
-    console.error('[stripe] Error creando factura:', err)
-  }
 }
