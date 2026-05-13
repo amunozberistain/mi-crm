@@ -52,6 +52,7 @@ export default function ActivitiesClient({ initialActivities, isGoogleConnected 
   const [gConnected,   setGConnected]   = useState(isGoogleConnected)
   const [loadingGoogle, setLoadingGoogle] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
+  const [googleError,   setGoogleError]   = useState<string | null>(null)
 
   const [modalOpen,    setModalOpen]    = useState(false)
   const [editActivity, setEditActivity] = useState<Activity | undefined>()
@@ -86,13 +87,21 @@ export default function ActivitiesClient({ initialActivities, isGoogleConnected 
   const fetchGoogleEvents = useCallback(async () => {
     if (!gConnected) return
     setLoadingGoogle(true)
+    setGoogleError(null)
     try {
       const res = await fetch(
         `/api/google/events?start=${rangeStart.toISOString()}&end=${addDays(rangeEnd, 1).toISOString()}`
       )
-      if (res.ok) setGoogleEvents(await res.json() as GoogleCalendarEvent[])
+      if (res.ok) {
+        setGoogleEvents(await res.json() as GoogleCalendarEvent[])
+      } else {
+        const msg = await res.text()
+        console.error('[activities] google events error', res.status, msg)
+        setGoogleError(msg || `Error ${res.status}`)
+      }
     } catch (e) {
       console.error('[activities] google fetch error', e)
+      setGoogleError('Error de conexión con Google Calendar')
     } finally {
       setLoadingGoogle(false)
     }
@@ -284,8 +293,19 @@ export default function ActivitiesClient({ initialActivities, isGoogleConnected 
         </button>
       </div>
 
+      {/* ── Google error banner ── */}
+      {googleError && (
+        <div className="shrink-0 flex items-center gap-2 px-5 py-2 bg-red-50 border-b border-red-200 text-sm text-red-700">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Google Calendar: {googleError}</span>
+          <button onClick={() => setGoogleError(null)} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
+
       {/* ── Calendar body ── */}
-      <div className="flex-1 min-h-0 overflow-hidden bg-white">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden bg-white">
         {view === 'week' ? (
           <WeekView
             activities={activities}

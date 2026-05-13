@@ -1,12 +1,12 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useLayoutEffect, useState } from 'react'
 import type { Activity, GoogleCalendarEvent } from '@/types'
 
 // 1 minute = 1px in the time grid
 const HOUR_H = 60
 const GRID_H  = 24 * HOUR_H   // 1440px total
-const START_SCROLL = 7 * HOUR_H  // scroll to 07:00 on mount
+const START_SCROLL = 8 * HOUR_H  // scroll to 08:00 on mount
 
 interface CalEvent {
   id: string; title: string; start_at: string; end_at: string
@@ -55,7 +55,7 @@ function isSameDay(a: Date, b: Date) {
 }
 
 function formatHour(h: number) {
-  return h === 0 ? '' : h < 10 ? `${h}:00` : `${h}:00`
+  return `${h}:00`
 }
 
 interface Props {
@@ -72,8 +72,10 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
     const n = new Date(); return n.getHours() * 60 + n.getMinutes()
   })
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: START_SCROLL - 30, behavior: 'instant' })
+  useLayoutEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = START_SCROLL - 30
+    }
   }, [])
 
   useEffect(() => {
