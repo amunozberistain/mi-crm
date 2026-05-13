@@ -158,21 +158,37 @@ export default function EventModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Inicio</label>
-              <input
-                type="datetime-local"
-                value={startAt}
-                onChange={e => handleStartChange(e.target.value)}
-                className={inputCls}
-              />
+              <div className="flex gap-1.5">
+                <input
+                  type="date"
+                  value={startAt.slice(0, 10)}
+                  onChange={e => handleStartChange(`${e.target.value}T${startAt.slice(11, 16)}`)}
+                  className={`${inputCls} flex-1 min-w-0`}
+                />
+                <input
+                  type="time"
+                  value={startAt.slice(11, 16)}
+                  onChange={e => handleStartChange(`${startAt.slice(0, 10)}T${e.target.value}`)}
+                  className={`${inputCls} w-[5.5rem] shrink-0`}
+                />
+              </div>
             </div>
             <div>
               <label className={labelCls}>Fin</label>
-              <input
-                type="datetime-local"
-                value={endAt}
-                onChange={e => setEndAt(e.target.value)}
-                className={inputCls}
-              />
+              <div className="flex gap-1.5">
+                <input
+                  type="date"
+                  value={endAt.slice(0, 10)}
+                  onChange={e => setEndAt(`${e.target.value}T${endAt.slice(11, 16)}`)}
+                  className={`${inputCls} flex-1 min-w-0`}
+                />
+                <input
+                  type="time"
+                  value={endAt.slice(11, 16)}
+                  onChange={e => setEndAt(`${endAt.slice(0, 10)}T${e.target.value}`)}
+                  className={`${inputCls} w-[5.5rem] shrink-0`}
+                />
+              </div>
             </div>
           </div>
 
