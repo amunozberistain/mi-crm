@@ -19,6 +19,10 @@ export type Deal = {
   notes: string | null
   budget_draft: Record<string, unknown> | null
   proposal_content: Record<string, unknown> | null
+  // Workspace — invoicing
+  invoice_paid: boolean
+  invoice_paid_at: string | null
+  invoice_amount: number | null
 }
 
 export type Contact = {
@@ -30,6 +34,8 @@ export type Contact = {
   source: string | null
   notes: string | null
   created_at: string
+  // Workspace — delivery tracking
+  videos_delivered: boolean
   // Origen del lead (Meta Ads tracking)
   lead_source: 'manual' | 'meta_lead_ads' | 'meta_landing' | null
   utm_source: string | null
@@ -66,4 +72,14 @@ export type GoogleCalendarEvent = {
   end_at: string
   is_all_day: boolean
   html_link: string | null
+}
+
+export type Expense = {
+  id: string
+  user_id: string
+  concept: string
+  category: string
+  amount: number
+  date: string
+  created_at: string
 }

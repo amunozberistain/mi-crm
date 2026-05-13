@@ -41,3 +41,29 @@ ALTER TABLE google_tokens ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "google_tokens_own" ON google_tokens
   USING  (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- ─── Workspace module ─────────────────────────────────────────────────────────
+
+-- contacts: manual flag for video delivery
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS videos_delivered BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- deals: invoicing overrides
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS invoice_paid     BOOLEAN      NOT NULL DEFAULT FALSE;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS invoice_paid_at  DATE;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS invoice_amount   NUMERIC(10,2);
+
+-- expenses table
+CREATE TABLE IF NOT EXISTS expenses (
+  id         UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    UUID          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  concept    TEXT          NOT NULL,
+  category   TEXT          NOT NULL,
+  amount     NUMERIC(10,2) NOT NULL,
+  date       DATE          NOT NULL,
+  created_at TIMESTAMPTZ   DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS expenses_user_date ON expenses(user_id, date DESC);
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "expenses_own" ON expenses
+  USING  (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
