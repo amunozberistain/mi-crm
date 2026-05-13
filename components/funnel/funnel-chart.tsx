@@ -19,34 +19,32 @@ interface Props {
   steps: FunnelStep[]
 }
 
-const COLORS = ['#4f46e5', '#7c3aed', '#9333ea', '#a855f7']
-
-// Tooltip personalizado para mostrar porcentaje de conversión desde el paso anterior
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payload: FunnelStep }[] }) {
   if (!active || !payload?.length) return null
   const { name, value } = payload[0].payload
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-sm">
-      <p className="font-semibold text-gray-900">{name}</p>
-      <p className="text-gray-600">{value.toLocaleString('es-ES')} {name === 'Clics en anuncios' ? 'clics' : name === 'Leads creados' ? 'leads' : 'deals'}</p>
+    <div className="bg-white border border-[#D4C5B0] rounded-lg shadow-lg px-3 py-2 text-sm">
+      <p className="font-semibold text-[#2C1810]">{name}</p>
+      <p className="text-[#8B6F5E]">
+        {value.toLocaleString('es-ES')}{' '}
+        {name === 'Clics en anuncios' ? 'clics' : name === 'Leads creados' ? 'leads' : 'deals'}
+      </p>
     </div>
   )
 }
 
 export default function FunnelViz({ steps }: Props) {
-  const data = steps.map((s, i) => ({ ...s, fill: COLORS[i] ?? COLORS[COLORS.length - 1] }))
-
   return (
     <ResponsiveContainer width="100%" height={320}>
       <FunnelChart>
         <Tooltip content={<CustomTooltip />} />
-        <Funnel dataKey="value" data={data} isAnimationActive lastShapeType="rectangle">
-          {data.map((entry, i) => (
+        <Funnel dataKey="value" data={steps} isAnimationActive lastShapeType="rectangle">
+          {steps.map((entry, i) => (
             <Cell key={i} fill={entry.fill} />
           ))}
           <LabelList
             position="right"
-            fill="#374151"
+            fill="#8B6F5E"
             stroke="none"
             dataKey="name"
             style={{ fontSize: 13, fontWeight: 500 }}

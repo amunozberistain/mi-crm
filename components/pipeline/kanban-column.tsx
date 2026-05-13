@@ -12,47 +12,43 @@ interface Props {
   onCardClick: (dealId: string) => void
 }
 
-const STAGE_STYLES: Record<string, { dot: string; bg: string }> = {
-  'Nuevo lead':      { dot: 'bg-gray-400',   bg: 'bg-gray-50'   },
-  'Contactado':      { dot: 'bg-blue-500',   bg: 'bg-blue-50'   },
-  'Follow up 1':     { dot: 'bg-violet-500', bg: 'bg-violet-50' },
-  'Follow up 2':     { dot: 'bg-amber-500',  bg: 'bg-amber-50'  },
-  'Cerrado ganado':  { dot: 'bg-green-500',  bg: 'bg-green-50'  },
-  'Cerrado perdido': { dot: 'bg-red-400',    bg: 'bg-red-50'    },
+const STAGE_DOT: Record<string, string> = {
+  'Nuevo lead':      'bg-[#C4A882]',
+  'Contactado':      'bg-[#7BA3B8]',
+  'Follow up 1':     'bg-[#9B8EC4]',
+  'Follow up 2':     'bg-[#C4A35A]',
+  'Cerrado ganado':  'bg-[#6E9E6B]',
+  'Cerrado perdido': 'bg-[#C47878]',
 }
 
 export default function KanbanColumn({ stage, deals, onAddDeal, onCardClick }: Props) {
-  // isOver es true cuando hay un card siendo arrastrado encima de esta columna
   const { setNodeRef, isOver } = useDroppable({ id: stage })
 
-  const style = STAGE_STYLES[stage] ?? { dot: 'bg-gray-400', bg: 'bg-gray-50' }
+  const dot = STAGE_DOT[stage] ?? 'bg-[#C4A882]'
   const totalValue = deals.reduce((sum, d) => sum + (d.value ?? 0), 0)
 
   return (
     <div className="flex flex-col w-64 flex-shrink-0">
-      {/* Cabecera de la columna */}
-      <div className="flex items-center justify-between mb-2 px-1">
+      {/* Cabecera de columna */}
+      <div className="flex items-center justify-between mb-2.5 px-1">
         <div className="flex items-center gap-2">
-          <span className={cn('w-2 h-2 rounded-full flex-shrink-0', style.dot)} />
-          <span className="text-sm font-semibold text-gray-700">{stage}</span>
-          <span className="text-xs font-medium bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">
+          <span className={cn('w-2 h-2 rounded-full flex-shrink-0', dot)} />
+          <span className="font-display text-sm font-semibold text-[#2C1810]">{stage}</span>
+          <span className="text-xs font-medium bg-[#D4C5B0]/60 text-[#5C3D2E] px-1.5 py-0.5 rounded-full">
             {deals.length}
           </span>
         </div>
         <div className="flex items-center gap-1">
           {totalValue > 0 && (
-            <span className="text-xs text-gray-400 font-medium">
+            <span className="text-xs text-[#8B6F5E] font-medium">
               {new Intl.NumberFormat('es-ES', {
-                style: 'currency',
-                currency: 'EUR',
-                maximumFractionDigits: 0,
+                style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
               }).format(totalValue)}
             </span>
           )}
-          {/* Botón "+" para crear un deal directamente en esta etapa */}
           <button
             onClick={onAddDeal}
-            className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded-md text-[#8B6F5E] hover:bg-[#D4C5B0]/60 hover:text-[#5C3D2E] transition-colors"
             title={`Añadir deal en ${stage}`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,13 +58,12 @@ export default function KanbanColumn({ stage, deals, onAddDeal, onCardClick }: P
         </div>
       </div>
 
-      {/* Zona de drop: se ilumina con un anillo índigo cuando hay un card encima */}
+      {/* Zona de drop */}
       <div
         ref={setNodeRef}
         className={cn(
-          'flex-1 rounded-xl p-2 space-y-2 min-h-[480px] transition-all duration-150',
-          style.bg,
-          isOver && 'ring-2 ring-indigo-400 ring-inset'
+          'flex-1 rounded-xl p-2 space-y-2 min-h-[480px] transition-all duration-150 bg-[#EDE8DF]',
+          isOver && 'ring-2 ring-[#5C3D2E]/40 ring-inset'
         )}
       >
         {deals.map((deal) => (
@@ -76,7 +71,7 @@ export default function KanbanColumn({ stage, deals, onAddDeal, onCardClick }: P
         ))}
 
         {deals.length === 0 && !isOver && (
-          <p className="text-center text-xs text-gray-400 pt-8">Sin deals</p>
+          <p className="text-center text-xs text-[#8B6F5E]/60 pt-8">Sin deals</p>
         )}
       </div>
     </div>

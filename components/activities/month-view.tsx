@@ -15,7 +15,7 @@ interface CalEvent {
 interface Props {
   activities:   Activity[]
   googleEvents: GoogleCalendarEvent[]
-  monthDate:    Date        // any date in the displayed month
+  monthDate:    Date
   onDayClick:   (date: Date) => void
   onEventClick: (activity: Activity) => void
 }
@@ -25,13 +25,12 @@ export default function MonthView({ activities, googleEvents, monthDate, onDayCl
   const year  = monthDate.getFullYear()
   const month = monthDate.getMonth()
 
-  // First day of month and its day-of-week (Mon=0)
   const firstDay = new Date(year, month, 1)
-  let startDow = firstDay.getDay() - 1  // shift so Monday=0
+  let startDow = firstDay.getDay() - 1
   if (startDow < 0) startDow = 6
 
-  const daysInMonth  = new Date(year, month + 1, 0).getDate()
-  const totalCells   = Math.ceil((startDow + daysInMonth) / 7) * 7
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const totalCells  = Math.ceil((startDow + daysInMonth) / 7) * 7
 
   const cells = Array.from({ length: totalCells }, (_, i) => {
     const dayNum = i - startDow + 1
@@ -58,9 +57,9 @@ export default function MonthView({ activities, googleEvents, monthDate, onDayCl
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Day-of-week headers */}
-      <div className="grid grid-cols-7 border-b border-gray-200 shrink-0">
+      <div className="grid grid-cols-7 border-b border-[#D4C5B0] shrink-0 bg-[#EDE8DF]">
         {dayNames.map(d => (
-          <div key={d} className="py-2 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">
+          <div key={d} className="py-2 text-center text-xs font-semibold text-[#8B6F5E] uppercase tracking-wide">
             {d}
           </div>
         ))}
@@ -73,7 +72,7 @@ export default function MonthView({ activities, googleEvents, monthDate, onDayCl
       >
         {cells.map((day, idx) => {
           if (!day) {
-            return <div key={idx} className="border-r border-b border-gray-100 bg-gray-50/50" />
+            return <div key={idx} className="border-r border-b border-[#D4C5B0]/30 bg-[#F5F0E8]/50" />
           }
 
           const isToday   = isSameDay(day, today)
@@ -86,14 +85,14 @@ export default function MonthView({ activities, googleEvents, monthDate, onDayCl
             <div
               key={idx}
               onClick={() => onDayClick(day)}
-              className={`border-r border-b border-gray-100 p-1 cursor-pointer group overflow-hidden
-                ${isWeekend ? 'bg-gray-50/40' : 'bg-white'}
-                hover:bg-indigo-50/40 transition-colors`}
+              className={`border-r border-b border-[#D4C5B0]/30 p-1 cursor-pointer group overflow-hidden transition-colors
+                ${isWeekend ? 'bg-[#F5F0E8]/60' : 'bg-white'}
+                hover:bg-[#EDE8DF]/50`}
             >
               {/* Day number */}
               <div className="flex justify-center mb-1">
-                <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full
-                  ${isToday ? 'bg-indigo-600 text-white' : 'text-gray-700 group-hover:bg-indigo-100'}`}
+                <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full transition-colors
+                  ${isToday ? 'bg-[#5C3D2E] text-white' : 'text-[#2C1810] group-hover:bg-[#D4C5B0]/50'}`}
                 >
                   {day.getDate()}
                 </span>
@@ -131,7 +130,7 @@ export default function MonthView({ activities, googleEvents, monthDate, onDayCl
               })}
 
               {overflow > 0 && (
-                <p className="text-[11px] text-gray-400 pl-1">{overflow} más</p>
+                <p className="text-[11px] text-[#8B6F5E] pl-1">{overflow} más</p>
               )}
             </div>
           )

@@ -16,6 +16,8 @@ interface Props {
   defaultStage?: string
 }
 
+const selectCls = 'w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground'
+
 export default function NewDealDialog({ open, onOpenChange, contacts = [], defaultStage = 'Nuevo lead' }: Props) {
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,29 +42,20 @@ export default function NewDealDialog({ open, onOpenChange, contacts = [], defau
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Nuevo deal</DialogTitle>
+          <DialogTitle className="font-display text-xl font-semibold text-[#2C1810]">
+            Nuevo deal
+          </DialogTitle>
         </DialogHeader>
 
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 mt-2">
-          {/* Título — obligatorio */}
           <div className="space-y-1.5">
             <Label htmlFor="deal-title">Título *</Label>
-            <Input
-              id="deal-title"
-              name="title"
-              placeholder="Proyecto web Acme S.L."
-              required
-            />
+            <Input id="deal-title" name="title" placeholder="Proyecto web Acme S.L." required />
           </div>
 
-          {/* Contacto — select con los contactos existentes */}
           <div className="space-y-1.5">
             <Label htmlFor="deal-contact">Contacto</Label>
-            <select
-              id="deal-contact"
-              name="contact_id"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
+            <select id="deal-contact" name="contact_id" className={selectCls}>
               <option value="">Sin contacto</option>
               {contacts.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -72,54 +65,29 @@ export default function NewDealDialog({ open, onOpenChange, contacts = [], defau
             </select>
           </div>
 
-          {/* Etapa — pre-selecciona la columna desde la que se abrió el diálogo */}
           <div className="space-y-1.5">
             <Label htmlFor="deal-stage">Etapa</Label>
-            <select
-              id="deal-stage"
-              name="stage"
-              defaultValue={defaultStage}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
+            <select id="deal-stage" name="stage" defaultValue={defaultStage} className={selectCls}>
               {PIPELINE_STAGES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
 
-          {/* Valor + cantidad de videos en la misma fila */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="deal-value">Valor (€)</Label>
-              <Input
-                id="deal-value"
-                name="value"
-                type="number"
-                min="0"
-                step="100"
-                placeholder="5000"
-              />
+              <Input id="deal-value" name="value" type="number" min="0" step="100" placeholder="5000" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="deal-videos">Cantidad de videos</Label>
-              <Input
-                id="deal-videos"
-                name="cantidad_videos"
-                type="number"
-                min="1"
-                placeholder="3"
-              />
+              <Input id="deal-videos" name="cantidad_videos" type="number" min="1" placeholder="3" />
             </div>
           </div>
 
-          {/* Forma de pago */}
           <div className="space-y-1.5">
             <Label htmlFor="deal-forma-pago">Forma de pago</Label>
-            <select
-              id="deal-forma-pago"
-              name="forma_pago"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
+            <select id="deal-forma-pago" name="forma_pago" className={selectCls}>
               <option value="">Sin especificar</option>
               {FORMA_PAGO_OPTIONS.map((op) => (
                 <option key={op} value={op}>{op}</option>
@@ -138,7 +106,7 @@ export default function NewDealDialog({ open, onOpenChange, contacts = [], defau
             <Button
               type="submit"
               disabled={isPending}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-[#5C3D2E] hover:bg-[#4A3024] text-white"
             >
               {isPending ? 'Guardando…' : 'Crear deal'}
             </Button>

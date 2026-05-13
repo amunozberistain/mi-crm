@@ -3,10 +3,10 @@
 import { useRef, useEffect, useLayoutEffect, useState } from 'react'
 import type { Activity, GoogleCalendarEvent } from '@/types'
 
-// 1 minute = 1px in the time grid
+// 1 minute = 1px
 const HOUR_H = 60
-const GRID_H  = 24 * HOUR_H   // 1440px total
-const START_SCROLL = 8 * HOUR_H  // scroll to 08:00 on mount
+const GRID_H  = 24 * HOUR_H
+const START_SCROLL = 8 * HOUR_H
 
 interface CalEvent {
   id: string; title: string; start_at: string; end_at: string
@@ -85,7 +85,6 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
     return () => clearInterval(id)
   }, [])
 
-  // Build the 7 days of the week
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart)
     d.setDate(d.getDate() + i)
@@ -94,7 +93,6 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
 
   const today = new Date()
 
-  // Merge activities + Google events into a unified list per day
   function eventsForDay(day: Date): CalEvent[] {
     const acts = activities
       .filter(a => !a.google_event_id && isSameDay(new Date(a.start_at), day))
@@ -128,16 +126,16 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
 
       {/* Day headers */}
-      <div className="flex shrink-0 border-b border-gray-200 bg-white">
+      <div className="flex shrink-0 border-b border-[#D4C5B0] bg-white">
         <div className="w-14 shrink-0" />
         {days.map((day, i) => {
           const isToday = isSameDay(day, today)
           const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
           return (
-            <div key={i} className="flex-1 py-2 text-center border-l border-gray-100">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{dayNames[i]}</p>
+            <div key={i} className="flex-1 py-2 text-center border-l border-[#D4C5B0]/40">
+              <p className="text-xs font-medium text-[#8B6F5E] uppercase tracking-wide">{dayNames[i]}</p>
               <p className={`text-xl font-bold mt-0.5 w-9 mx-auto rounded-full leading-9 ${
-                isToday ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                isToday ? 'bg-[#5C3D2E] text-white' : 'text-[#2C1810]'
               }`}>
                 {day.getDate()}
               </p>
@@ -146,14 +144,14 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
         })}
       </div>
 
-      {/* All-day events row */}
+      {/* All-day row */}
       {hasAnyAllDay && (
-        <div className="flex shrink-0 border-b border-gray-200 bg-white min-h-[32px]">
+        <div className="flex shrink-0 border-b border-[#D4C5B0] bg-white min-h-[32px]">
           <div className="w-14 shrink-0 flex items-center justify-end pr-2">
-            <span className="text-xs text-gray-400">todo el día</span>
+            <span className="text-xs text-[#8B6F5E]">todo el día</span>
           </div>
           {days.map((day, i) => (
-            <div key={i} className="flex-1 border-l border-gray-100 px-1 py-1 space-y-0.5">
+            <div key={i} className="flex-1 border-l border-[#D4C5B0]/40 px-1 py-1 space-y-0.5">
               {allDayForDay(day).map(ev => (
                 <a
                   key={ev.id}
@@ -181,7 +179,7 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
             {Array.from({ length: 24 }, (_, h) => (
               <div
                 key={h}
-                className="absolute right-2 text-xs text-gray-400 tabular-nums"
+                className="absolute right-2 text-xs text-[#8B6F5E]/70 tabular-nums"
                 style={{ top: h * HOUR_H - 7 }}
               >
                 {formatHour(h)}
@@ -198,14 +196,14 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
             return (
               <div
                 key={di}
-                className="flex-1 border-l border-gray-200 relative cursor-pointer"
+                className="flex-1 border-l border-[#D4C5B0]/40 relative cursor-pointer"
                 onClick={e => handleSlotClick(day, e)}
               >
                 {/* Hour lines */}
                 {Array.from({ length: 24 }, (_, h) => (
                   <div
                     key={h}
-                    className="absolute inset-x-0 border-t border-gray-100 pointer-events-none"
+                    className="absolute inset-x-0 border-t border-[#D4C5B0]/30 pointer-events-none"
                     style={{ top: h * HOUR_H }}
                   />
                 ))}
@@ -213,7 +211,7 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
                 {Array.from({ length: 24 }, (_, h) => (
                   <div
                     key={`h${h}`}
-                    className="absolute inset-x-0 border-t border-dashed border-gray-50 pointer-events-none"
+                    className="absolute inset-x-0 border-t border-dashed border-[#D4C5B0]/15 pointer-events-none"
                     style={{ top: h * HOUR_H + 30 }}
                   />
                 ))}
@@ -225,8 +223,8 @@ export default function WeekView({ activities, googleEvents, weekStart, onSlotCl
                     style={{ top: currentMin }}
                   >
                     <div className="flex items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-red-500 -ml-1.5 shrink-0" />
-                      <div className="flex-1 h-0.5 bg-red-500" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-400 -ml-1.5 shrink-0" />
+                      <div className="flex-1 h-0.5 bg-red-400" />
                     </div>
                   </div>
                 )}

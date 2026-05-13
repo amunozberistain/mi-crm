@@ -8,42 +8,41 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans:    ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+      },
       colors: {
-        // Colores base
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        // Card
         card: {
-          DEFAULT: "hsl(var(--card))",
+          DEFAULT:    "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Popover — usado por Dialog, Dropdown, etc.
         popover: {
-          DEFAULT: "hsl(var(--popover))",
+          DEFAULT:    "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
-        // Colores semánticos de shadcn/ui
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT:    "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
+          DEFAULT:    "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
+          DEFAULT:    "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT:    "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
+          DEFAULT:    "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-        // Borders e inputs
         border: "hsl(var(--border))",
         input:  "hsl(var(--input))",
         ring:   "hsl(var(--ring))",

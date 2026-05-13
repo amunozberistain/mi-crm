@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   const email = (user as NonNullable<typeof user>).email ?? ''
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-[#F5F0E8] overflow-hidden">
       {/* Sidebar fijo a la izquierda */}
       <Sidebar />
 

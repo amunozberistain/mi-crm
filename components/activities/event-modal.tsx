@@ -6,10 +6,10 @@ import { EVENT_COLORS } from '@/lib/constants'
 import type { Activity } from '@/types'
 
 interface Props {
-  open:             boolean
-  onClose:          () => void
-  initialDate?:     Date          // prefill date when clicking a slot
-  activity?:        Activity      // provided → edit mode
+  open:              boolean
+  onClose:           () => void
+  initialDate?:      Date
+  activity?:         Activity
   isGoogleConnected: boolean
   onSave:   (data: SavePayload) => Promise<void>
   onDelete?: () => Promise<void>
@@ -32,7 +32,6 @@ function toLocalDatetimeValue(iso: string): string {
 
 function defaultStart(base?: Date): string {
   const d = base ? new Date(base) : new Date()
-  // Round up to next 30-minute mark
   const min = d.getMinutes()
   if (min < 30) d.setMinutes(30, 0, 0)
   else { d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1) }
@@ -50,18 +49,17 @@ export default function EventModal({
 }: Props) {
   const isEdit = !!activity
 
-  const [title,        setTitle]        = useState('')
-  const [description,  setDescription]  = useState('')
-  const [startAt,      setStartAt]      = useState(defaultStart(initialDate))
-  const [endAt,        setEndAt]        = useState(() => addHour(defaultStart(initialDate)))
-  const [color,        setColor]        = useState(EVENT_COLORS[0].value)
-  const [syncGoogle,   setSyncGoogle]   = useState(isGoogleConnected)
-  const [saving,       setSaving]       = useState(false)
-  const [deleting,     setDeleting]     = useState(false)
-  const [confirmDel,   setConfirmDel]   = useState(false)
-  const [error,        setError]        = useState<string | null>(null)
+  const [title,       setTitle]       = useState('')
+  const [description, setDescription] = useState('')
+  const [startAt,     setStartAt]     = useState(defaultStart(initialDate))
+  const [endAt,       setEndAt]       = useState(() => addHour(defaultStart(initialDate)))
+  const [color,       setColor]       = useState(EVENT_COLORS[0].value)
+  const [syncGoogle,  setSyncGoogle]  = useState(isGoogleConnected)
+  const [saving,      setSaving]      = useState(false)
+  const [deleting,    setDeleting]    = useState(false)
+  const [confirmDel,  setConfirmDel]  = useState(false)
+  const [error,       setError]       = useState<string | null>(null)
 
-  // Reset form when modal opens
   useEffect(() => {
     if (!open) return
     setError(null)
@@ -72,7 +70,7 @@ export default function EventModal({
       setStartAt(toLocalDatetimeValue(activity.start_at))
       setEndAt(toLocalDatetimeValue(activity.end_at))
       setColor(activity.color)
-      setSyncGoogle(false) // edit: don't re-sync by default (already synced)
+      setSyncGoogle(false)
     } else {
       const s = defaultStart(initialDate)
       setTitle('')
@@ -85,7 +83,6 @@ export default function EventModal({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  // Auto-adjust end if start moves past it
   function handleStartChange(val: string) {
     setStartAt(val)
     if (new Date(val) >= new Date(endAt)) {
@@ -128,20 +125,20 @@ export default function EventModal({
     }
   }
 
-  const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
-  const labelCls = 'block text-xs font-medium text-gray-500 mb-1'
+  const inputCls = 'w-full rounded-lg border border-[#D4C5B0] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C3D2E]/40 bg-white text-[#2C1810] placeholder:text-[#8B6F5E]/50'
+  const labelCls = 'block text-xs font-medium text-[#8B6F5E] mb-1'
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) onClose() }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-base">
+          <DialogTitle className="font-display text-xl font-semibold text-[#2C1810]">
             {isEdit ? 'Editar tarea' : 'Nueva tarea'}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-1">
-          {/* Title */}
+          {/* Título */}
           <div>
             <label className={labelCls}>Título *</label>
             <input
@@ -190,6 +187,7 @@ export default function EventModal({
                 </select>
               </div>
             </div>
+
             {/* Fin */}
             <div className="space-y-1.5">
               <label className={labelCls}>Fin</label>
@@ -226,7 +224,7 @@ export default function EventModal({
             </div>
           </div>
 
-          {/* Color picker */}
+          {/* Color */}
           <div>
             <label className={labelCls}>Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
@@ -247,7 +245,7 @@ export default function EventModal({
             </div>
           </div>
 
-          {/* Description */}
+          {/* Descripción */}
           <div>
             <label className={labelCls}>Descripción</label>
             <textarea
@@ -259,16 +257,16 @@ export default function EventModal({
             />
           </div>
 
-          {/* Google sync toggle */}
+          {/* Google sync */}
           {isGoogleConnected && (
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <div
                 onClick={() => setSyncGoogle(v => !v)}
-                className={`relative w-9 h-5 rounded-full transition-colors ${syncGoogle ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                className={`relative w-9 h-5 rounded-full transition-colors ${syncGoogle ? 'bg-[#5C3D2E]' : 'bg-[#D4C5B0]'}`}
               >
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${syncGoogle ? 'translate-x-4' : ''}`} />
               </div>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-[#8B6F5E]">
                 {isEdit ? 'Actualizar en Google Calendar' : 'Añadir a Google Calendar'}
               </span>
             </label>
@@ -290,14 +288,14 @@ export default function EventModal({
                   >
                     {deleting ? 'Eliminando…' : 'Confirmar'}
                   </button>
-                  <button onClick={() => setConfirmDel(false)} className="text-xs text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setConfirmDel(false)} className="text-xs text-[#8B6F5E] hover:text-[#2C1810]">
                     Cancelar
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setConfirmDel(true)}
-                  className="mr-auto text-xs text-gray-300 hover:text-red-500 transition-colors"
+                  className="mr-auto text-xs text-[#D4C5B0] hover:text-red-500 transition-colors"
                   title="Eliminar tarea"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,7 +308,7 @@ export default function EventModal({
             <button
               onClick={onClose}
               disabled={saving}
-              className="ml-auto text-sm text-gray-600 font-medium px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300 disabled:opacity-50"
+              className="ml-auto text-sm text-[#8B6F5E] font-medium px-4 py-2 rounded-lg border border-[#D4C5B0] hover:border-[#5C3D2E]/30 hover:bg-[#F5F0E8] disabled:opacity-50 transition-colors"
             >
               Cancelar
             </button>

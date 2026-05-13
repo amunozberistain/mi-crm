@@ -89,11 +89,13 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
   return (
     <>
       {/* Cabecera */}
-      <div className="flex items-center justify-between mb-6 flex-shrink-0">
+      <div className="flex items-start justify-between mb-8 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pipeline</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {totalDeals} deal{totalDeals !== 1 ? 's' : ''} ·{' '}
+          <h1 className="font-display text-3xl font-semibold text-[#2C1810] leading-tight">
+            Pipeline
+          </h1>
+          <p className="text-sm text-[#8B6F5E] mt-1">
+            {totalDeals} deal{totalDeals !== 1 ? 's' : ''} &middot;{' '}
             {new Intl.NumberFormat('es-ES', {
               style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
             }).format(totalValue)}{' '}
@@ -102,7 +104,7 @@ export default function KanbanBoard({ deals: initialDeals, stages, contacts }: P
         </div>
         <button
           onClick={() => openDialog(stages[0])}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-2 bg-[#5C3D2E] hover:bg-[#4A3024] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

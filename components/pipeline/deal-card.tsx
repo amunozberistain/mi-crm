@@ -22,7 +22,6 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
     disabled: isOverlay,
   })
 
-  // Track pointer start position so we can distinguish a tap from a drag
   const pointerStart = useRef<{ x: number; y: number } | null>(null)
 
   const style = transform ? { transform: CSS.Translate.toString(transform) } : undefined
@@ -30,7 +29,6 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
 
   function handlePointerDown(e: React.PointerEvent) {
     pointerStart.current = { x: e.clientX, y: e.clientY }
-    // Also call dnd-kit's listener so dragging still works
     ;(listeners as { onPointerDown?: React.PointerEventHandler })?.onPointerDown?.(e)
   }
 
@@ -39,7 +37,6 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
     const dx = e.clientX - pointerStart.current.x
     const dy = e.clientY - pointerStart.current.y
     pointerStart.current = null
-    // Only treat as a click if the pointer barely moved (not a drag)
     if (dx * dx + dy * dy < 25 && !isDragging) {
       onCardClick?.(deal.id)
     }
@@ -51,33 +48,32 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
       style={style}
       {...listeners}
       {...attributes}
-      // Override onPointerDown with our merged handler; keep onPointerUp separate
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       className={cn(
-        'bg-white rounded-lg p-3 shadow-sm border border-gray-100',
+        'bg-white rounded-lg p-3.5 border border-[#D4C5B0]',
         'cursor-grab active:cursor-grabbing select-none touch-none',
         isDragging && 'opacity-30',
         isOverlay  && 'shadow-xl rotate-1 cursor-grabbing opacity-100',
-        !isOverlay && 'hover:border-indigo-200 hover:shadow-md transition-shadow'
+        !isOverlay && 'hover:border-[#5C3D2E]/30 hover:shadow-md transition-all'
       )}
     >
       {/* Título */}
-      <p className="font-medium text-gray-900 text-sm leading-snug line-clamp-2">
+      <p className="font-medium text-[#2C1810] text-sm leading-snug line-clamp-2">
         {deal.title}
       </p>
 
       {/* Contacto */}
       {deal.contacts && (
-        <p className="text-xs text-gray-500 mt-1 truncate">
+        <p className="text-xs text-[#8B6F5E] mt-1 truncate">
           {deal.contacts.name}
           {deal.contacts.company && (
-            <span className="text-gray-400"> · {deal.contacts.company}</span>
+            <span className="text-[#8B6F5E]/60"> · {deal.contacts.company}</span>
           )}
         </p>
       )}
 
-      {/* PDF badges — stop propagation so card panel doesn't open */}
+      {/* PDF badges */}
       {!isOverlay && (deal.budget_url || deal.proposal_url) && (
         <div
           className="flex flex-wrap gap-x-2 mt-2"
@@ -89,7 +85,7 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
               href={deal.budget_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 font-medium"
+              className="inline-flex items-center gap-1 text-xs text-[#5C3D2E] hover:text-[#4A3024] font-medium"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -103,7 +99,7 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
               href={deal.proposal_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+              className="inline-flex items-center gap-1 text-xs text-[#8B6F5E] hover:text-[#5C3D2E] font-medium"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -115,35 +111,35 @@ export default function DealCard({ deal, isOverlay = false, onCardClick }: Props
         </div>
       )}
 
-      {/* Metadatos: videos + forma de pago */}
+      {/* Metadatos */}
       {(deal.cantidad_videos || deal.forma_pago) && (
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2">
           {deal.cantidad_videos && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-[#8B6F5E]/70">
               {deal.cantidad_videos} vídeo{deal.cantidad_videos !== 1 ? 's' : ''}
             </span>
           )}
           {deal.forma_pago && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-[#8B6F5E]/70">
               {deal.forma_pago.startsWith('Upfront') ? 'Upfront' : '50/50'}
             </span>
           )}
         </div>
       )}
 
-      {/* Footer: valor + días */}
-      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-50">
-        <span className="text-sm font-semibold text-gray-800">
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-[#F5F0E8]">
+        <span className="text-sm font-semibold text-[#2C1810]">
           {deal.value > 0
             ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(deal.value)
             : '—'}
         </span>
         <span className={cn(
           'text-xs px-1.5 py-0.5 rounded-full font-medium',
-          days === 0  ? 'bg-green-100 text-green-700'
-          : days <= 7  ? 'bg-gray-100 text-gray-500'
-          : days <= 14 ? 'bg-amber-100 text-amber-700'
-          :              'bg-red-100 text-red-700'
+          days === 0  ? 'bg-[#D4F0D4] text-[#2D6A2D]'
+          : days <= 7  ? 'bg-[#EDE8DF] text-[#8B6F5E]'
+          : days <= 14 ? 'bg-[#FBF0DC] text-[#8B6020]'
+          :              'bg-[#FADDDD] text-[#8B2020]'
         )}>
           {days === 0 ? 'Hoy' : `${days}d`}
         </span>
