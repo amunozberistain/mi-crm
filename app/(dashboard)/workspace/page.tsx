@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CLOSED_WON_STAGE } from '@/lib/constants'
 import WorkspaceClient from '@/components/workspace/workspace-client'
+import { generateRecurringExpenses } from './actions'
 import type { Contact, Deal, Expense } from '@/types'
 
 // Contacts enriched with their associated deals
@@ -15,6 +16,9 @@ export type DealWithContact = Deal & {
 
 export default async function WorkspacePage() {
   const supabase = createClient()
+
+  // Generate any missed recurring instances before fetching
+  try { await generateRecurringExpenses() } catch { /* table may not exist yet */ }
 
   const [
     { data: rawContacts },

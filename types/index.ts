@@ -82,4 +82,7 @@ export type Expense = {
   amount: number
   date: string
   created_at: string
+  recurring: boolean
+  recurring_frequency: string | null   // 'monthly' | 'quarterly' | 'yearly'
+  recurring_parent_id: string | null
 }

@@ -67,3 +67,8 @@ ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "expenses_own" ON expenses
   USING  (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- ─── Gastos recurrentes ───────────────────────────────────────────────────────
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS recurring           BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS recurring_frequency TEXT;         -- 'monthly' | 'quarterly' | 'yearly'
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS recurring_parent_id UUID;         -- child rows point to their parent
