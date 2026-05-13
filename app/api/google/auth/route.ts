@@ -7,15 +7,17 @@ export async function GET() {
   if (!user) return new NextResponse('Unauthorized', { status: 401 })
 
   const clientId    = process.env.GOOGLE_CLIENT_ID
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/google/callback`
+  const appUrl      = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
+  const redirectUri = `${appUrl}/api/google/callback`
 
-  if (!clientId) return new NextResponse('GOOGLE_CLIENT_ID no configurado', { status: 500 })
+  if (!clientId)  return new NextResponse('GOOGLE_CLIENT_ID no configurado', { status: 500 })
+  if (!appUrl)    return new NextResponse('NEXT_PUBLIC_APP_URL no configurado', { status: 500 })
 
   const params = new URLSearchParams({
     client_id:     clientId,
     redirect_uri:  redirectUri,
     response_type: 'code',
-    scope:         'https://www.googleapis.com/auth/calendar',
+    scope:         'https://www.googleapis.com/auth/calendar.events',
     access_type:   'offline',
     prompt:        'consent',
     state:         user.id,   // CSRF: validamos en callback

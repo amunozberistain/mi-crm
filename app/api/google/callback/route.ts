@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const stateId = searchParams.get('state')
   const error   = searchParams.get('error')
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
 
   if (error || !code) {
     return NextResponse.redirect(`${appUrl}/activities?google_error=access_denied`)
