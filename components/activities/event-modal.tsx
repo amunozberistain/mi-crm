@@ -156,38 +156,72 @@ export default function EventModal({
 
           {/* Start / End */}
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            {/* Inicio */}
+            <div className="space-y-1.5">
               <label className={labelCls}>Inicio</label>
+              <input
+                type="date"
+                value={startAt.slice(0, 10)}
+                onChange={e => handleStartChange(`${e.target.value}T${startAt.slice(11, 16)}`)}
+                className={inputCls}
+              />
               <div className="flex gap-1.5">
-                <input
-                  type="date"
-                  value={startAt.slice(0, 10)}
-                  onChange={e => handleStartChange(`${e.target.value}T${startAt.slice(11, 16)}`)}
-                  className={`${inputCls} flex-1 min-w-0`}
-                />
-                <input
-                  type="time"
-                  value={startAt.slice(11, 16)}
-                  onChange={e => handleStartChange(`${startAt.slice(0, 10)}T${e.target.value}`)}
-                  className={`${inputCls} w-[5.5rem] shrink-0`}
-                />
+                <select
+                  value={startAt.slice(11, 13)}
+                  onChange={e => handleStartChange(`${startAt.slice(0, 11)}${e.target.value}:${startAt.slice(14, 16)}`)}
+                  className={`${inputCls} flex-1`}
+                >
+                  {Array.from({ length: 24 }, (_, h) => {
+                    const v = String(h).padStart(2, '0')
+                    return <option key={h} value={v}>{v}</option>
+                  })}
+                </select>
+                <select
+                  value={startAt.slice(14, 16)}
+                  onChange={e => handleStartChange(`${startAt.slice(0, 14)}${e.target.value}`)}
+                  className={`${inputCls} flex-1`}
+                >
+                  {(() => {
+                    const cur = startAt.slice(14, 16)
+                    const opts = ['00', '15', '30', '45']
+                    if (!opts.includes(cur)) opts.push(cur)
+                    return opts.sort().map(m => <option key={m} value={m}>{m}</option>)
+                  })()}
+                </select>
               </div>
             </div>
-            <div>
+            {/* Fin */}
+            <div className="space-y-1.5">
               <label className={labelCls}>Fin</label>
+              <input
+                type="date"
+                value={endAt.slice(0, 10)}
+                onChange={e => setEndAt(`${e.target.value}T${endAt.slice(11, 16)}`)}
+                className={inputCls}
+              />
               <div className="flex gap-1.5">
-                <input
-                  type="date"
-                  value={endAt.slice(0, 10)}
-                  onChange={e => setEndAt(`${e.target.value}T${endAt.slice(11, 16)}`)}
-                  className={`${inputCls} flex-1 min-w-0`}
-                />
-                <input
-                  type="time"
-                  value={endAt.slice(11, 16)}
-                  onChange={e => setEndAt(`${endAt.slice(0, 10)}T${e.target.value}`)}
-                  className={`${inputCls} w-[5.5rem] shrink-0`}
-                />
+                <select
+                  value={endAt.slice(11, 13)}
+                  onChange={e => setEndAt(`${endAt.slice(0, 11)}${e.target.value}:${endAt.slice(14, 16)}`)}
+                  className={`${inputCls} flex-1`}
+                >
+                  {Array.from({ length: 24 }, (_, h) => {
+                    const v = String(h).padStart(2, '0')
+                    return <option key={h} value={v}>{v}</option>
+                  })}
+                </select>
+                <select
+                  value={endAt.slice(14, 16)}
+                  onChange={e => setEndAt(`${endAt.slice(0, 14)}${e.target.value}`)}
+                  className={`${inputCls} flex-1`}
+                >
+                  {(() => {
+                    const cur = endAt.slice(14, 16)
+                    const opts = ['00', '15', '30', '45']
+                    if (!opts.includes(cur)) opts.push(cur)
+                    return opts.sort().map(m => <option key={m} value={m}>{m}</option>)
+                  })()}
+                </select>
               </div>
             </div>
           </div>
